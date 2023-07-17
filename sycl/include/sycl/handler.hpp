@@ -200,7 +200,7 @@ checkValueRangeImpl(ValT V) {
   static constexpr size_t Limit =
       static_cast<size_t>((std::numeric_limits<int>::max)());
   if (V > Limit)
-    throw sycl::exception(make_error_code(errc::nd_range), NotIntMsg<T>::Msg);
+    throw sycl::exception(make_error_code(errc::kernel_not_supported), NotIntMsg<T>::Msg);
 }
 #endif
 
