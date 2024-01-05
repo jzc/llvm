@@ -394,8 +394,12 @@ attributeToExecModeMetadata(const Attribute &Attr, Function &F) {
   if (AttrKindStr == "sycl-sub-group-size") {
     uint32_t SubGroupSize = getAttributeAsInteger<uint32_t>(Attr);
     IntegerType *Ty = Type::getInt32Ty(Ctx);
-    Metadata *MDVal = ConstantAsMetadata::get(
-        Constant::getIntegerValue(Ty, APInt(32, SubGroupSize)));
+    Metadata *MDVal;
+    if (SubGroupSize == 0)
+      MDVal = MDString::get(Ctx, "primary");
+    else
+      MDVal = ConstantAsMetadata::get(
+          Constant::getIntegerValue(Ty, APInt(32, SubGroupSize)));
     SmallVector<Metadata *, 1> MD{MDVal};
     return std::pair<std::string, MDNode *>("intel_reqd_sub_group_size",
                                             MDNode::get(Ctx, MD));

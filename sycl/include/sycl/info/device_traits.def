@@ -204,6 +204,9 @@ __SYCL_PARAM_TRAITS_SPEC(device, ext_intel_mem_channel, bool,
                          PI_EXT_INTEL_DEVICE_INFO_MEM_CHANNEL_SUPPORT)
 __SYCL_PARAM_TRAITS_SPEC(device, ext_oneapi_bfloat16_math_functions, bool,
                          PI_EXT_ONEAPI_DEVICE_INFO_BFLOAT16_MATH_FUNCTIONS)
+__SYCL_PARAM_TRAITS_SPEC(device, primary_sub_group_size,
+                         uint32_t,
+                         0)
 
 //Deprecated oneapi/intel extension
 //TODO:Remove when possible

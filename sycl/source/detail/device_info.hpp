@@ -18,6 +18,7 @@
 #include <sycl/detail/pi.hpp>
 #include <sycl/device.hpp>
 #include <sycl/ext/oneapi/experimental/device_architecture.hpp>
+#include <sycl/ext/oneapi/experimental/named_sub_group_sizes.hpp>
 #include <sycl/ext/oneapi/matrix/query-types.hpp>
 #include <sycl/feature_test.hpp>
 #include <sycl/info/info_desc.hpp>
@@ -2038,6 +2039,12 @@ template <>
 inline float get_device_info_host<
     ext::oneapi::experimental::info::device::mipmap_max_anisotropy>() {
   throw runtime_error("Bindless image mipaps are not supported on HOST device",
+                      PI_ERROR_INVALID_DEVICE);
+}
+
+template <>
+inline uint32_t get_device_info_host<info::device::primary_sub_group_size>() {
+  throw runtime_error("Primary sub-group size is not supported on HOST device",
                       PI_ERROR_INVALID_DEVICE);
 }
 
