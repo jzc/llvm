@@ -30,6 +30,7 @@
 #include <sycl/exception.hpp>
 #include <sycl/stl.hpp>
 
+#include <sycl/ext/oneapi/experimental/named_sub_group_sizes.hpp>
 #include <sycl/ext/oneapi/matrix/query-types.hpp>
 
 #include <algorithm>
@@ -2867,6 +2868,11 @@ checkDevSupportDeviceRequirements(const device &Dev,
     auto ReqdSubGroupSize =
         DeviceBinaryProperty(*(ReqdSubGroupSizePropIt.value())).asUint32();
     auto SupportedSubGroupSizes = Dev.get_info<info::device::sub_group_sizes>();
+    // The sub_group_size_primary named sub-group size is encoded as a special
+    // value that will not be included in get_info<sub_group_sizes>(), so add it
+    // here.
+    SupportedSubGroupSizes.push_back(
+        ext::oneapi::experimental::named_sub_group_size::primary);
     // !getUint32PropAsBool(Img, "isEsimdImage") is a WA for ESIMD,
     // as ESIMD images have a reqd-sub-group-size of 1, but currently
     // no backend currently includes 1 as a valid sub-group size.

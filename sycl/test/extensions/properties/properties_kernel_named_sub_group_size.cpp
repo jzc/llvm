@@ -21,4 +21,4 @@ int main() {
   q.parallel_for<class Kernel2>(ndr, P2, [=](auto id) {});
 }
 
-// CHECK: ![[SGSizeAttr]] = !{!"primary"}
+// CHECK: ![[SGSizeAttr]] = !{i32 0}
