@@ -1,3 +1,61 @@
+# Jan'24 release notes
+
+## New Features
+### SYCL Compiler
+- Add -fpreview-breaking-changes option [08febcfcb64a49d591c6355cd909dc9eaf3aa3b8] [99b97eef42781f886f362a587fb8a586e02e3c1d]
+### SYCL Library
+- Add experimental implementation of SYCL bindless images extension [58a8f2001d8b23bd19df54a6ea64eed324149810] [380453deeb51c9bbe31ff272fe9f557b9ced29da] [b1aab046f40880ededbc7cbbef96a4817ca2cf31]
+- Add support for local accessors to copy_from/copy_to API [474461cb2e1de6f4e63a5d7d6edb6e93cb37b486]
+- Add support for local accessors to atomic update API [8974cb944b3cdabac9183283d195c6bafe81f9c4]
+- Add new raw_send APIs moving compile time params to template params [1a5e53216b009177c73dfd6d644a5c016b71b552]
+- Added SYCLcompat library [bedd818eb281f92b0d2d40cb6423235743161b65] [465aa56ee5b3e6b9a82d93cc992a31ec53cc7f04] [75b31a4c24b476c50da474ae8e3d0429f14e9799] [4dfaf20884c7268342c9ff57960c2d7d54f941af] [47d84897a87b8676b0a16b6e7b38b33f47cdcf99] [8c07a840311ab7b1768a487cae3a97bef9d4f9f5] [ab578107b6f8fb5de08459777fa953bd9ab9b827] [ac5a90e0c1b57030fa8bc486d191906d8f7a2c63] [a733fa74b583d60c9e20145ee77efdd6f2105da2] [c39c2138f5a0eb6b85a2deeecf9b929530b7cb18]
+- Implement sycl_ext_oneapi_auto_local_range [a6d4c2120b5c41a531559b357034117d5c323c25]
+- Implement sub_group_mask version 2 [3bd09b9089c5221f72f19ab1adde19da909661a7]
+- Implement ext_oneapi_queue_priority [0c33fea5fac067066cc942ee6f98612700e05d57]
+- Implement opt kernel feature for joint_matrix and joint_matrix_mad [946b1f2361670c7ac24e342ee77b1f467778cf94] [c38dfcf64681b3498e9658de97ed1d2c63b20165]
+### Documentation
+- Update and Move sycl::complex's extension from proposed to experimental [ea6aea37c6dd777ef8df68e45a93646be2ad9558]
+- Add SYCLcompat documentation [180a92ad707bd35df9e98c1474dc52a1e9b3dead]
+- Add draft forward progress extension [67461148b16938a318796f639ee857b02831c38d]
+- Add kernel compiler extension spec [5e64f96d20c22a6c2a1600515160ddf248637641]
+- Add sycl_ext_oneapi_enqueue_functions [ebc3ddb9a60bad6f1f0e331da4044000e3a7fb60]
+- Design Doc for SYCL-Graph Extension [1713ed19f71c4401b2ff62dcbc32a8e71b336701]
+- Graph fusion extension proposal [8c4cad45faba815ad252de895a2a1434d8c0bd1a]
+
+## Improvements
+### SYCL Compiler
+- Diagnose SYCL options in non-sycl mode. [bf128c873e74b4c991712249a3f2145264725888][feature?]
+- Modify SYCL offloading flow to use clang-linker-wrapper [d7a1a4146eb2f35ac9d40db9db671e22291f4320] [7b907cbcaea9b24b26a8beffd9a4f7afef5aecca]
+### SYCL Library
+- vec abi unification and trivially copyable [531aabfdee91e0055e3d28459432dfa59b17850d] [f4ed132f243ab43816ebe826669d978139964df2]
+- Support missing types with ldg extension [aec8a35788c1953c6ae74ab1e6eb924fa09d5e4e]
+- Stop throwing exception when passing empty accessor to handler::require() [7bf1f57bc26e11868d2ef136b6e5ab18ea5d519c]
+- Move addc() and subb() functions out of experimental namespace [9e3852bc1c2e52e572a7617f924d548f80300222]
+- Move BFN function from experimental namespace [c9da5c7ff7e80b193491932ebd9c66ee0777d1f2]
+- Report source code info(file/line number) where null pointer exception occurred in memcpy [626c4b5078c14e90a66a692ac306d98065ece035]
+- Improve accuracy of double tanpi host implementation [041a74c0cbda14fc8e03e3944367a8b0107656b6]
+### SYCL Tools
+### Documentation
+- Update sycl_ext_oneapi_local_memory [457251feceb81845de962383f227e14522d4cf96]
+- clarify coodinates of packed matrix and fix joint_matrix_copy requirements [579f1dec0b5b2ecd177dfb95c3d1522f57079cc6]
+- Update design doc for new offloading model [115808f5128f33321c68b9dead4fcd25f6a2ed49]
+
+## Bug Fixes
+### SYCL Compiler
+- Fix backend option passing issues with multiple targets [12ca2db0e30b155c7d6bf14320dd1ba468ac9294]
+### SYCL Library
+- Fix stack corruption in sycl::modf for sycl::half type [7c6541dc18e324e36853b473a15e8df4edf97755]
+- Fix nextafter with half on host [1f10f3588e8ccab79e42eee7fd640153d701b08c]
+- Fix identity values for (sub)group collectives min/max [2483893719324831eebce8c188aed688a8a04419]
+### Documentation
+
+## API/ABI breakages
+- Deprecate experimental functions: quot,div,mod,dp*,line,lrp [76976a22ba2e86059d655aa7d5f71250160f4864]
+- Remove ESIMD Emulator plugin [1ece6da6b1139ad29d1ed44a05759e9b5974d3e8]
+- Deprecate `sycl::abs(genfloat)` [d15d4409b2cf7e023bf6f462fac5630699f1c0a7]
+
+## Known Issues
+
 # Oct'23 release notes
 
 Release notes for commit range [`cb91c232c661..f4e0d3177338`](https://github.com/intel/llvm/compare/cb91c232c661..f4e0d3177338)
