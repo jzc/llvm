@@ -1,9 +1,14 @@
 # Jan'24 release notes
+Release notes for commit range f4e0d3177338db8be4bd9e9b280f7b733c2f15f8..f4ed132f243ab43816ebe826669d978139964df2
 
 ## New Features
 ### SYCL Compiler
 - Add -fpreview-breaking-changes option [08febcfcb64a49d591c6355cd909dc9eaf3aa3b8] [99b97eef42781f886f362a587fb8a586e02e3c1d]
 - Enable early AOT abilities when creating objects [6f248088541c306a8c54dc4cf7a0a61451a2a46d]
+- Add support for -faltmathlib [32c3e642d6440b296d821c18825eafd632728866]
+- Add support for -ftarget-register-alloc-mode [8e5275af77af1ec5da25b1a58f341108cfb5223a]
+- Add -fsycl-add-default-spec-consts-image command line option to Clang Driver [3847c7c6c5c7b296314a338c7079d75d2d1ddd99]
+
 ### SYCL Library
 - Add experimental implementation of SYCL bindless images extension [58a8f2001d8b23bd19df54a6ea64eed324149810] [380453deeb51c9bbe31ff272fe9f557b9ced29da] [b1aab046f40880ededbc7cbbef96a4817ca2cf31]
 - Add support for local accessors to copy_from/copy_to API [474461cb2e1de6f4e63a5d7d6edb6e93cb37b486]
@@ -19,8 +24,6 @@
 - Add esimd as an optional device feature [a5f471ea1535ec57417d403062b43a29c4df3cf4]
 - Added `ext_oneapi_non_uniform_groups` aspect [de92299c2c09d626dcbc633c83e259d828220d03]
 
-### SYCL Tools
-- Add generation of device image with specialization constants replaced by default values [a7ef2680163876d7e1f3d80244623dcaf3b5ba49]
 ### Documentation
 - Update and Move sycl::complex's extension from proposed to experimental [ea6aea37c6dd777ef8df68e45a93646be2ad9558]
 - Add SYCLcompat documentation [180a92ad707bd35df9e98c1474dc52a1e9b3dead]
@@ -30,10 +33,11 @@
 - Design Doc for SYCL-Graph Extension [1713ed19f71c4401b2ff62dcbc32a8e71b336701]
 - Graph fusion extension proposal [8c4cad45faba815ad252de895a2a1434d8c0bd1a]
 - Add new SYCL language spec for fpga_mem [a162179381fd1b0ebab5cab8978e7cef9dfdac8c]
+- Proposed cache control properties for annotated_ptr [deb020bf740b1d34d71189f5900b1558934a09d7]
 
 ## Improvements
 ### SYCL Compiler
-- Diagnose SYCL options in non-sycl mode. [bf128c873e74b4c991712249a3f2145264725888][feature?]
+- Diagnose SYCL options in non-sycl mode. [bf128c873e74b4c991712249a3f2145264725888]
 - Modify SYCL offloading flow to use clang-linker-wrapper [d7a1a4146eb2f35ac9d40db9db671e22291f4320] [7b907cbcaea9b24b26a8beffd9a4f7afef5aecca]
 - Enable INTEL_SYCL_OPAQUEPOINTER_READY [a47705f2d8659d38a1e494b51fe3fb361e891bda] [9dded21c59849f6ab8867dca3c40e84a085b594d]
 - Support multiple SYCL targets with native_cpu in the same compiler invocation [aab5d747c46ec216e9f85868ede744d0bb35a307]
@@ -41,7 +45,8 @@
 - Adjust debug format for SYCL device on Windows [73bba79a3ffb2ee92c3f7eeff812924bafb39bea]
 - Disable parallel for range rounding at -O0 [2c117d7a61041fcb06c0e42715fcc81459e4bb8c]
 - Enable SPV_INTEL_optnone extension for non-fpga targets [993fe5b31b43911a903463e414f1daf1ab81337c]
-- 
+- Relax LowerESIMDSlmReservation assert [7897517c3a5ebbe4e05977d9b8cc0dd28a192d98]
+
 ### SYCL Library
 - vec abi unification and trivially copyable [531aabfdee91e0055e3d28459432dfa59b17850d] [f4ed132f243ab43816ebe826669d978139964df2]
 - Support missing types with ldg extension [aec8a35788c1953c6ae74ab1e6eb924fa09d5e4e]
@@ -68,17 +73,36 @@
 - Move GRF property conflict check to compile time [4fb92d35c7beac85913edd23197c2e6506e49240]
 - Add error when using invoke_simd with callables with struct arguments [03c13fd53a2413de41b68fd03d7ad7e7ef905215]
 - Add missing rintf [3c327c736ced3690b283f04302146ac952f53726]
-### SYCL Tools
+- Cache the max local mem size in CUDA adapter [1c892f952cae7f0cea5c446534441478948e3f7d]
+- Add support for local accessors to lsc API [9dce2d227b31fdbba09a044500a0ea849cdeb747]
+- Replace USM allocator with UMF abstractions in Level Zero backend [7b9b8ce4e4c5be5503b22e4cedf341b4120d1ad6]
+- Make SYCL-Graph functions thread-safe [c8c64a673eebfede0d9dbc0728a4eaaa5bde0b10]
+- Improve diagnostic for nd_item passed to parallel_for with range [e600d7922489635290fd2cb63300d865fc72ee72]
+- Implement missing exceptions defined by SYCL-Graphs specification [77b794bcaad6a33ff5734d938412f61b6b7475f0]
+- Implemented supported make_device, make_queue, make_event interop functions for HIP backend [5e9d07b14a47c2097764b148c3b1dcdb9fcbbc1c]
+- Add missing nearbyint for CUDA [0ef26d3ee8086cb51d4f5deb9ad8c3d81cdd8f16]
+- Implement runtime query for matrix combinations [a09491f4e389dbef29128bda69a7954e4b887af6]
+- Support basic kernel launches over 64-bit global ranges [192c3016e76b36b755bd13b1d32446071812c600]
+- Clarify runtime error for nested kernel submissions [7afc2d03fd0040177009967aca057cc80708747b]
+- Improve handling of spec constants with padding in the middle of structs [292309c826a3e11b8cb225667b316d8ce01e2779]
+- Add support for CUDA backend with graph extension [367b662a49baad1a881696448399d68f491452e4]
+- Add support for specialization constants with graph extension [fca7f5e2e3fb558e613c5daa0eb547b8e25cc524]
+- Improve `vec::convert` implementation to use a single instruction instead of per-element [f634cc9bf799d92029da2b3090db4563191c1f0a]
+
 ### Documentation
 - Update sycl_ext_oneapi_local_memory [457251feceb81845de962383f227e14522d4cf96]
 - clarify coodinates of packed matrix and fix joint_matrix_copy requirements [579f1dec0b5b2ecd177dfb95c3d1522f57079cc6]
 - Update design doc for new offloading model [115808f5128f33321c68b9dead4fcd25f6a2ed49]
 - Update immediate command list usage [ad973f3383e265a1e209b61559e24cec37c5d111]
+- Add overloads with sycl::queue for some functions in `sycl_ext_oneapi_bindless_images` [4d0c552985bd0e4fc16740a0fc89393ef7fe3d04]
+- Add queue requirement when replay a graph [2c53815c6c1e3f8e40c5b6dbe3e5dc2aebd4fa37]
 
 ## Bug Fixes
 ### SYCL Compiler
 - Fix backend option passing issues with multiple targets [12ca2db0e30b155c7d6bf14320dd1ba468ac9294]
 - Fix -fgpu-rdc option for CUDA [f7595ac7527e67a59e33550851366db7d886ac3f]
+- Fix triple in offload mismatch warning [0fd9a4eb17a2db0fed151ba9d975804322966bcc]
+
 ### SYCL Library
 - Fix stack corruption in sycl::modf for sycl::half type [7c6541dc18e324e36853b473a15e8df4edf97755]
 - Fix nextafter with half on host [1f10f3588e8ccab79e42eee7fd640153d701b08c]
@@ -95,6 +119,11 @@
 - Fix std::enable_if typo for marray and multi_ptr [0ef25ec3bdf8497dbe272e0295708d704cbe7020]
 - Fix integer type overflow in SYCLDeviceRequirements [cee07d3d26520fcdaab33dfaf7759b59210675d4]
 - Fix UB in group sort scratch memory access [ed4c01301a7c2be9157df6410be3b72ac4b95df7]
+- Use primary context in HIP adapter [d1c92cb95b29b0bf44683cc84b9978d767e0a300]
+- Allow passing default constructed accessors to kernels [fb8ddbf7b0ea3f22b6a2d7fce661e44123ebb2d5]
+- Fix issues with sycl_ext_oneapi_graph subgraphs [92ddf8d562d736f6c556976dce2c099e6aef591e]
+- Fix ambiguous log2 call in host code
+- Add device copyable trait for annotated_arg [9f65e61a2dbf9e9b631159a5ac2ec92137996f62]
 ### Documentation
 - device_global: device_image_scope Update [be8e031cd078ea0298a773aa5fc743c18e50fe97]
 
@@ -104,6 +133,38 @@
 - Deprecate `sycl::abs(genfloat)` [d15d4409b2cf7e023bf6f462fac5630699f1c0a7]
 
 ## Known Issues
+- Having MESA OpenCL implementation which provides no devices on a
+  system may cause incorrect device discovery. As a workaround such an OpenCL
+  implementation can be disabled by removing `/etc/OpenCL/vendor/mesa.icd`.
+- `-fsycl-dead-args-optimization` can't help eliminate offset of
+  accessor even though it's created with no offset specified
+- SYCL 2020 barriers show worse performance than SYCL 1.2.1 do. [18c80faa]
+- When using fallback assert in separate compilation flow it requires explicit
+  linking against `lib/libsycl-fallback-cassert.o` or
+  `lib/libsycl-fallback-cassert.spv`
+- Limit alignment of allocation requests at 64KB which is the only alignment
+  supported by Level Zero. 7dfaf3bd
+- User-defined functions with the name and signature matching those of any
+  OpenCL C built-in function (i.e. an exact match of arguments, return type
+  doesn't matter) can lead to Undefined Behavior.
+- A DPC++ system that has FPGAs installed does not support multi-process
+  execution. Creating a context opens the device associated with the context
+  and places a lock on it for that process. No other process may use that
+  device. Some queries about the device through `device.get_info<>()` also
+  open up the device and lock it to that process since the runtime needs
+  to query the actual device to obtain that information.
+- The format of the object files produced by the compiler can change between
+  versions. The workaround is to rebuild the application.
+- Using `sycl::kernel_bundle` API to refer to a kernel defined
+  in another translation unit leads to undefined behavior
+- Linkage errors with the following message:
+  `error LNK2005: "bool const std::_Is_integral<bool>" (??$_Is_integral@_N@std@@3_NB) already defined`
+  can happen when a SYCL application is built using MS Visual Studio 2019
+  version below 16.3.0 and user specifies `-std=c++14` or `/std:c++14`.
+- Printing internal defines isn't supported on Windows. [50628db1]
+- The support of accessor and local_accessor for ESIMD is still limited comparing to SYCL.
+- [`sycl_ext_oneapi_root_group`](https://github.com/intel/llvm/tree/743c35be2da7/sycl/doc/extensions/proposed/sycl_ext_oneapi_root_group.asciidoc) implementation has the following limitations: `max_num_work_group_sync` query always returns `1` and the implemented barrier has work group scope since all work items in a root group are currently in the same work group.
+
 
 # Oct'23 release notes
 
