@@ -3,7 +3,7 @@ Release notes for commit range f4e0d3177338db8be4bd9e9b280f7b733c2f15f8..f4ed132
 
 ## New Features
 ### SYCL Compiler
-- Add -fpreview-breaking-changes option [08febcfcb64a49d591c6355cd909dc9eaf3aa3b8] [99b97eef42781f886f362a587fb8a586e02e3c1d]
+- Add -fpreview-breaking-changes option 08febcfcb64a49d591c6355cd909dc9eaf3aa3b8 99b97eef42781f886f362a587fb8a586e02e3c1d
 - Enable early AOT abilities when creating objects [6f248088541c306a8c54dc4cf7a0a61451a2a46d]
 - Add support for -faltmathlib [32c3e642d6440b296d821c18825eafd632728866]
 - Add support for -ftarget-register-alloc-mode [8e5275af77af1ec5da25b1a58f341108cfb5223a]
@@ -91,7 +91,8 @@ Release notes for commit range f4e0d3177338db8be4bd9e9b280f7b733c2f15f8..f4ed132
 
 ### Documentation
 - Update sycl_ext_oneapi_local_memory [457251feceb81845de962383f227e14522d4cf96]
-- clarify coodinates of packed matrix and fix joint_matrix_copy requirements [579f1dec0b5b2ecd177dfb95c3d1522f57079cc6]
+- Add get-coord API and general query example to `sycl_ext_intel_matric` [579f1dec0b5b2ecd177dfb95c3d1522f57079cc6] [38ac2124c1e8034c37056256f9864e475128ad49]
+- 
 - Update design doc for new offloading model [115808f5128f33321c68b9dead4fcd25f6a2ed49]
 - Update immediate command list usage [ad973f3383e265a1e209b61559e24cec37c5d111]
 - Add overloads with sycl::queue for some functions in `sycl_ext_oneapi_bindless_images` [4d0c552985bd0e4fc16740a0fc89393ef7fe3d04]
@@ -102,6 +103,7 @@ Release notes for commit range f4e0d3177338db8be4bd9e9b280f7b733c2f15f8..f4ed132
 - Fix backend option passing issues with multiple targets [12ca2db0e30b155c7d6bf14320dd1ba468ac9294]
 - Fix -fgpu-rdc option for CUDA [f7595ac7527e67a59e33550851366db7d886ac3f]
 - Fix triple in offload mismatch warning [0fd9a4eb17a2db0fed151ba9d975804322966bcc]
+- Fix a bug when -enable-global-offset=false for AMDGU and NVPTX targets [00cf4c29740b2ec8d027e59e49e376a211599a58]
 
 ### SYCL Library
 - Fix stack corruption in sycl::modf for sycl::half type [7c6541dc18e324e36853b473a15e8df4edf97755]
@@ -124,6 +126,7 @@ Release notes for commit range f4e0d3177338db8be4bd9e9b280f7b733c2f15f8..f4ed132
 - Fix issues with sycl_ext_oneapi_graph subgraphs [92ddf8d562d736f6c556976dce2c099e6aef591e]
 - Fix ambiguous log2 call in host code
 - Add device copyable trait for annotated_arg [9f65e61a2dbf9e9b631159a5ac2ec92137996f62]
+
 ### Documentation
 - device_global: device_image_scope Update [be8e031cd078ea0298a773aa5fc743c18e50fe97]
 
@@ -131,6 +134,7 @@ Release notes for commit range f4e0d3177338db8be4bd9e9b280f7b733c2f15f8..f4ed132
 - Deprecate experimental functions: quot,div,mod,dp*,line,lrp [76976a22ba2e86059d655aa7d5f71250160f4864]
 - Remove ESIMD Emulator plugin [1ece6da6b1139ad29d1ed44a05759e9b5974d3e8]
 - Deprecate `sycl::abs(genfloat)` [d15d4409b2cf7e023bf6f462fac5630699f1c0a7]
+- Don't include `<complex>/<cmath>` from `sycl.hpp`, unless `-fpreview-breaking-changes` [6ed0ab887d18b18209a7d1c31b8bb8240a820f79] [d22c9c58d2e7c4936158dde6056281ef2cf0cdf2]
 
 ## Known Issues
 - Having MESA OpenCL implementation which provides no devices on a
