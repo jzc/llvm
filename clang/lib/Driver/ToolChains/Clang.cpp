@@ -11065,6 +11065,10 @@ void SYCLPostLink::ConstructJob(Compilation &C, const JobAction &JA,
     OutputArg = ("intel_gpu_" + Device + "," + OutputArg).str();
   else if (T.getSubArch() == llvm::Triple::SPIRSubArch_x86_64)
     OutputArg = "spir64_x86_64," + OutputArg;
+  else if (T.getArch() == llvm::Triple::nvptx64)
+    OutputArg = ("nvidia_gpu_" + Device + "," + OutputArg).str();
+  else if (T.getArch() == llvm::Triple::amdgcn)
+    OutputArg = ("amd_gpu_" + Device + "," + OutputArg).str();
 
   const toolchains::SYCLToolChain &TC =
       static_cast<const toolchains::SYCLToolChain &>(getToolChain());
