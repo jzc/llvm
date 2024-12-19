@@ -1,7 +1,7 @@
-# commit cd92e72bbc4ebddef63c63c0f7e66a410f4b9552
-# Merge: 9a209aa5 b1222f08
-# Author: Callum Fare <callum@codeplay.com>
-# Date:   Wed Nov 13 09:57:16 2024 +0000
-#     Merge pull request #2254 from PietroGhg/pietro/events_rr
-#     [NATIVECPU] Implement events on Native CPU
-set(UNIFIED_RUNTIME_TAG cd92e72bbc4ebddef63c63c0f7e66a410f4b9552)
+# commit ea0f3a1f5f15f9af7bf40bd13669afeb9ada569c
+# Merge: bb64b3e9f6d3 4a89e1c69a65
+# Author: Martin Grant <martin.morrisongrant@codeplay.com>
+# Date:   Thu Dec 19 11:26:01 2024 +0000
+#     Merge pull request #2277 from igchor/cooperative_fix
+#     [Spec] fix urKernelSuggestMaxCooperativeGroupCountExp
+set(UNIFIED_RUNTIME_TAG ea0f3a1f5f15f9af7bf40bd13669afeb9ada569c)
