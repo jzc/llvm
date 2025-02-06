@@ -1916,8 +1916,8 @@ void ProgramManager::addImages(sycl_device_binaries DeviceBinary) {
     {
       sycl_device_binary_property SanProp = Img->getProperty("sanUsed");
       if (SanProp) {
-        std::string SanValue =
-            detail::DeviceBinaryProperty(SanProp).asCString();
+        std::string_view SanValue =
+            detail::DeviceBinaryProperty(SanProp).asStringView();
 
         if (SanValue.rfind("asan", 0) == 0) { // starts_with
           m_SanitizerFoundInImage = SanitizerType::AddressSanitizer;

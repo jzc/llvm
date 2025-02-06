@@ -3243,6 +3243,29 @@ void CodeGenModule::SetFunctionAttributes(GlobalDecl GD, llvm::Function *F,
   if (const auto *A = FD->getAttr<SYCLUsesAspectsAttr>())
     applySYCLAspectsMD(A, getContext(), getLLVMContext(), F,
                        "sycl_used_aspects");
+
+  // if (const auto *A = FD->getAttr<SYCLAddIRAttributesFunctionAttr>()) {
+  //   SmallVector<std::pair<std::string, std::string>, 4> Pairs =
+  //       A->getFilteredAttributeNameValuePairs(Context);
+
+  //   for (const auto &[Key, Value] : Pairs) {
+  //     if (Key == "indirectly-callable") {
+  //       D->addAttr(SYCLDeviceAttr::CreateImplicit(Context));
+  //       break;
+  //     }
+  //   }
+  // }
+  if (getLangOpts().SYCLIsDevice &&
+     FD->hasAttr<SYCLAddIRAttributesFunctionAttr>()) {
+    const auto *A = FD->getAttr<SYCLAddIRAttributesFunctionAttr>();
+    SmallVector<std::pair<std::string, std::string>, 4> NameValuePairs =
+        A->getFilteredAttributeNameValuePairs(getContext());
+
+    llvm::AttrBuilder FnAttrBuilder(F->getContext());
+    for (const auto &NameValuePair : NameValuePairs)
+      FnAttrBuilder.addAttribute(NameValuePair.first, NameValuePair.second);
+    F->addFnAttrs(FnAttrBuilder);
+  }
 }
 
 void CodeGenModule::addUsedGlobal(llvm::GlobalValue *GV) {

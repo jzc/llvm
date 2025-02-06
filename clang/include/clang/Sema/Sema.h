@@ -5403,7 +5403,7 @@ public:
   /// The list of classes whose vtables have been used within
   /// this translation unit, and the source locations at which the
   /// first use occurred.
-  typedef std::pair<CXXRecordDecl *, SourceLocation> VTableUse;
+  typedef std::pair<const CXXRecordDecl *, SourceLocation> VTableUse;
 
   /// The list of vtables that are required but have not yet been
   /// materialized.
@@ -5413,14 +5413,14 @@ public:
   /// this translation unit, and a bit that will be true if the vtable is
   /// required to be emitted (otherwise, it should be emitted only if needed
   /// by code generation).
-  llvm::DenseMap<CXXRecordDecl *, bool> VTablesUsed;
+  llvm::DenseMap<const CXXRecordDecl *, bool> VTablesUsed;
 
   /// Load any externally-stored vtable uses.
   void LoadExternalVTableUses();
 
   /// Note that the vtable for the given class was used at the
   /// given location.
-  void MarkVTableUsed(SourceLocation Loc, CXXRecordDecl *Class,
+  void MarkVTableUsed(SourceLocation Loc, const CXXRecordDecl *Class,
                       bool DefinitionRequired = false);
 
   /// Mark the exception specifications of all virtual member functions

@@ -5472,7 +5472,7 @@ void ASTWriter::WriteSpecialDeclRecords(Sema &SemaRef) {
   RecordData VTableUses;
   if (!SemaRef.VTableUses.empty()) {
     for (unsigned I = 0, N = SemaRef.VTableUses.size(); I != N; ++I) {
-      CXXRecordDecl *D = SemaRef.VTableUses[I].first;
+      const CXXRecordDecl *D = SemaRef.VTableUses[I].first;
       if (!wasDeclEmitted(D))
         continue;
 

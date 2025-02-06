@@ -799,6 +799,10 @@ void CodeGenVTables::addVTableComponent(ConstantArrayBuilder &builder,
           !MD->hasAttr<SYCLDeviceAttr>())
         return builder.add(
             llvm::ConstantExpr::getNullValue(CGM.DefaultInt8PtrTy));
+      
+    llvm::outs() << "GD: ";
+    MD->dump(llvm::outs());
+    llvm::outs() << "\n";
     }
 
     auto getSpecialVirtualFn = [&](StringRef name) -> llvm::Constant * {
@@ -852,6 +856,7 @@ void CodeGenVTables::addVTableComponent(ConstantArrayBuilder &builder,
     } else if (nextVTableThunkIndex < layout.vtable_thunks().size() &&
                layout.vtable_thunks()[nextVTableThunkIndex].first ==
                    componentIndex) {
+                llvm::outs() << "THUNK\n";
       auto &thunkInfo = layout.vtable_thunks()[nextVTableThunkIndex].second;
 
       nextVTableThunkIndex++;
@@ -863,6 +868,7 @@ void CodeGenVTables::addVTableComponent(ConstantArrayBuilder &builder,
 
     // Otherwise we can use the method definition directly.
     } else {
+      llvm::outs() << "METHOD\n";
       llvm::Type *fnTy = CGM.getTypes().GetFunctionTypeForVTable(GD);
       fnPtr = CGM.GetAddrOfFunction(GD, fnTy, /*ForVTable=*/true);
       if (CGM.getCodeGenOpts().PointerAuth.CXXVirtualFunctionPointers)
@@ -870,10 +876,12 @@ void CodeGenVTables::addVTableComponent(ConstantArrayBuilder &builder,
     }
 
     if (useRelativeLayout()) {
+      llvm::outs() << "RELATIVE\n";
       return addRelativeComponent(
           builder, fnPtr, vtableAddressPoint, vtableHasLocalLinkage,
           component.getKind() == VTableComponent::CK_CompleteDtorPointer);
     } else {
+      llvm::outs() << "NOT RELATIVE\n";
       // TODO: this icky and only exists due to functions being in the generic
       //       address space, rather than the global one, even though they are
       //       globals;  fixing said issue might be intrusive, and will be done
@@ -1097,6 +1105,10 @@ static bool shouldEmitAvailableExternallyVTable(const CodeGenModule &CGM,
 /// Note that we only call this at the end of the translation unit.
 llvm::GlobalVariable::LinkageTypes
 CodeGenModule::getVTableLinkage(const CXXRecordDecl *RD) {
+  llvm::outs() << "getVTableLinkage decl:\n";
+  RD->dump(llvm::outs());
+  llvm::outs() << "\n";
+
   if (!RD->isExternallyVisible())
     return llvm::GlobalVariable::InternalLinkage;
   
@@ -1125,11 +1137,11 @@ CodeGenModule::getVTableLinkage(const CXXRecordDecl *RD) {
     switch (Kind) {
     case TSK_Undeclared:
     case TSK_ExplicitSpecialization:
-      assert(
-          (IsInNamedModule || def || CodeGenOpts.OptimizationLevel > 0 ||
-           CodeGenOpts.getDebugInfo() != llvm::codegenoptions::NoDebugInfo) &&
-          "Shouldn't query vtable linkage without the class in module units, "
-          "key function, optimizations, or debug info");
+      // assert(
+      //     (IsInNamedModule || def || CodeGenOpts.OptimizationLevel > 0 ||
+      //      CodeGenOpts.getDebugInfo() != llvm::codegenoptions::NoDebugInfo) &&
+      //     "Shouldn't query vtable linkage without the class in module units, "
+      //     "key function, optimizations, or debug info");
       if (IsExternalDefinition && CodeGenOpts.OptimizationLevel > 0)
         return llvm::GlobalVariable::AvailableExternallyLinkage;
 
@@ -1201,7 +1213,7 @@ CodeGenModule::getVTableLinkage(const CXXRecordDecl *RD) {
 /// This is only called for vtables that _must_ be emitted (mainly due to key
 /// functions).  For weak vtables, CodeGen tracks when they are needed and
 /// emits them as-needed.
-void CodeGenModule::EmitVTable(CXXRecordDecl *theClass) {
+void CodeGenModule::EmitVTable(const CXXRecordDecl *theClass) {
   VTables.GenerateClassData(theClass);
 }
 

@@ -7218,6 +7218,24 @@ void Sema::CheckCompletedCXXClass(Scope *S, CXXRecordDecl *Record) {
   if (getLangOpts().SYCLIsDevice && Record->hasAttr<SYCLScopeAttr>()) {
     SYCL().CheckSYCLScopeAttr(Record);
   }
+  if (getLangOpts().SYCLIsDevice) {
+    for (auto *D : Record->decls()) {
+      if (const auto *A = D->getAttr<SYCLAddIRAttributesFunctionAttr>()) {
+        if (SemaSYCL::hasDependentExpr(A->args_begin(), A->args_size()))
+          continue;
+        llvm::outs() << "SYCLAddIRAttributesFunctionAttr: ";
+        D->dump(llvm::outs());
+        llvm::outs() << "\n";
+        auto NameValuePairs = A->getAttributeNameValuePairs(getASTContext());
+        for (const auto &Pair : NameValuePairs) {
+          if (Pair.first == "indirectly-callable") {
+            SemaRef.MarkVTableUsed(D->getLocation(), Record, true);
+            llvm::outs() << "decl has indirectly-callable attribute\n";
+          }
+        }
+      }
+    }
+  }
 }
 
 /// Look up the special member function that would be called by a special
@@ -13951,7 +13969,7 @@ void Sema::DefineImplicitDefaultConstructor(SourceLocation CurrentLocation,
   // function.
   ResolveExceptionSpec(CurrentLocation,
                        Constructor->getType()->castAs<FunctionProtoType>());
-  MarkVTableUsed(CurrentLocation, ClassDecl);
+  MarkVTableUsed(CurrentLocation, ClassDecl/*, getLangOpts().SYCLIsDevice*/);
 
   // Add a context note for diagnostics produced after this point.
   Scope.addContextNote(CurrentLocation);
@@ -18503,7 +18521,7 @@ void Sema::LoadExternalVTableUses() {
   ExternalSource->ReadUsedVTables(VTables);
   SmallVector<VTableUse, 4> NewUses;
   for (unsigned I = 0, N = VTables.size(); I != N; ++I) {
-    llvm::DenseMap<CXXRecordDecl *, bool>::iterator Pos
+    llvm::DenseMap<const CXXRecordDecl *, bool>::iterator Pos
       = VTablesUsed.find(VTables[I].Record);
     // Even if a definition wasn't required before, it may be required now.
     if (Pos != VTablesUsed.end()) {
@@ -18519,13 +18537,17 @@ void Sema::LoadExternalVTableUses() {
   VTableUses.insert(VTableUses.begin(), NewUses.begin(), NewUses.end());
 }
 
-void Sema::MarkVTableUsed(SourceLocation Loc, CXXRecordDecl *Class,
+void Sema::MarkVTableUsed(SourceLocation Loc, const CXXRecordDecl *Class,
                           bool DefinitionRequired) {
   // Ignore any vtable uses in unevaluated operands or for classes that do
   // not have a vtable.
   if (!Class->isDynamicClass() || Class->isDependentContext() ||
-      CurContext->isDependentContext() || isUnevaluatedContext())
+      CurContext->isDependentContext() || isUnevaluatedContext()) {
+        llvm::outs() << "MarkVTableUsed: Class is not dynamic or is dependent: "
+        << !Class->isDynamicClass() << " " << Class->isDependentContext() << " "
+        << CurContext->isDependentContext() << " " << isUnevaluatedContext() << "\n";
     return;
+      }
   // Do not mark as used if compiling for the device outside of the target
   // region.
   if (TUKind != TU_Prefix && LangOpts.OpenMP && LangOpts.OpenMPIsTargetDevice &&
@@ -18539,7 +18561,7 @@ void Sema::MarkVTableUsed(SourceLocation Loc, CXXRecordDecl *Class,
   // Try to insert this class into the map.
   LoadExternalVTableUses();
   Class = Class->getCanonicalDecl();
-  std::pair<llvm::DenseMap<CXXRecordDecl *, bool>::iterator, bool>
+  std::pair<llvm::DenseMap<const CXXRecordDecl *, bool>::iterator, bool>
     Pos = VTablesUsed.insert(std::make_pair(Class, DefinitionRequired));
   if (!Pos.second) {
     // If we already had an entry, check to see if we are promoting this vtable
@@ -18595,6 +18617,12 @@ bool Sema::DefineUsedVTables() {
     CXXRecordDecl *Class = VTableUses[I].first->getDefinition();
     if (!Class)
       continue;
+
+    llvm::outs() << "Class: ";
+    // print class name
+    Class->printName(llvm::outs());
+    llvm::outs() << "\n";
+
     TemplateSpecializationKind ClassTSK =
         Class->getTemplateSpecializationKind();
 
@@ -18612,7 +18640,8 @@ bool Sema::DefineUsedVTables() {
       // defined in another translation unit, we don't need to emit the
       // vtable even though we're using it.
       // The key function is in another translation unit.
-      DefineVTable = false;
+      if (!getLangOpts().SYCLIsDevice)
+        DefineVTable = false;
       TemplateSpecializationKind TSK =
           KeyFunction->getTemplateSpecializationKind();
       assert(TSK != TSK_ExplicitInstantiationDefinition &&
@@ -18646,8 +18675,16 @@ bool Sema::DefineUsedVTables() {
     // We may choose to emit it available_externally anyway.
     if (!DefineVTable) {
       MarkVirtualMemberExceptionSpecsNeeded(Loc, Class);
+      llvm::outs() << "continue 1\n";
       continue;
     }
+
+#define DEBUG(expr) \
+    ( [] (auto&& _expr, const char* _expr_str, int _line) { \
+        auto _result = _expr; \
+        llvm::outs() << "DEBUG (line " << _line << "): " << _expr_str << " = " << _result << "\n"; \
+        return _result; \
+    }(expr, #expr, __LINE__) )
 
     // Mark all of the virtual members of this class as referenced, so
     // that we can build a vtable. Then, tell the AST consumer that a
@@ -18655,8 +18692,10 @@ bool Sema::DefineUsedVTables() {
     DefinedAnything = true;
     MarkVirtualMembersReferenced(Loc, Class);
     CXXRecordDecl *Canonical = Class->getCanonicalDecl();
-    if (VTablesUsed[Canonical] && !Class->shouldEmitInExternalSource())
+    if (DEBUG(VTablesUsed[Canonical]) && DEBUG(!Class->shouldEmitInExternalSource())) {
+      llvm::outs() << "handlevtable\n";
       Consumer.HandleVTable(Class);
+    }
 
     // Warn if we're emitting a weak vtable. The vtable will be weak if there is
     // no key function or the key function is inlined. Don't warn in C++ ABIs
