@@ -7219,7 +7219,7 @@ void Sema::CheckCompletedCXXClass(Scope *S, CXXRecordDecl *Record) {
     SYCL().CheckSYCLScopeAttr(Record);
   }
   if (getLangOpts().SYCLIsDevice) {
-    for (auto *D : Record->decls()) {
+    for (Decl *D : Record->decls()) {
       if (const auto *A = D->getAttr<SYCLAddIRAttributesFunctionAttr>()) {
         if (SemaSYCL::hasDependentExpr(A->args_begin(), A->args_size()))
           continue;
@@ -13965,7 +13965,7 @@ void Sema::DefineImplicitDefaultConstructor(SourceLocation CurrentLocation,
   // function.
   ResolveExceptionSpec(CurrentLocation,
                        Constructor->getType()->castAs<FunctionProtoType>());
-  MarkVTableUsed(CurrentLocation, ClassDecl/*, getLangOpts().SYCLIsDevice*/);
+  MarkVTableUsed(CurrentLocation, ClassDecl);
 
   // Add a context note for diagnostics produced after this point.
   Scope.addContextNote(CurrentLocation);
@@ -18517,7 +18517,7 @@ void Sema::LoadExternalVTableUses() {
   ExternalSource->ReadUsedVTables(VTables);
   SmallVector<VTableUse, 4> NewUses;
   for (unsigned I = 0, N = VTables.size(); I != N; ++I) {
-    llvm::DenseMap<const CXXRecordDecl *, bool>::iterator Pos
+    llvm::DenseMap<CXXRecordDecl *, bool>::iterator Pos
       = VTablesUsed.find(VTables[I].Record);
     // Even if a definition wasn't required before, it may be required now.
     if (Pos != VTablesUsed.end()) {
@@ -18533,7 +18533,7 @@ void Sema::LoadExternalVTableUses() {
   VTableUses.insert(VTableUses.begin(), NewUses.begin(), NewUses.end());
 }
 
-void Sema::MarkVTableUsed(SourceLocation Loc, const CXXRecordDecl *Class,
+void Sema::MarkVTableUsed(SourceLocation Loc, CXXRecordDecl *Class,
                           bool DefinitionRequired) {
   // Ignore any vtable uses in unevaluated operands or for classes that do
   // not have a vtable.
@@ -18553,7 +18553,7 @@ void Sema::MarkVTableUsed(SourceLocation Loc, const CXXRecordDecl *Class,
   // Try to insert this class into the map.
   LoadExternalVTableUses();
   Class = Class->getCanonicalDecl();
-  std::pair<llvm::DenseMap<const CXXRecordDecl *, bool>::iterator, bool>
+  std::pair<llvm::DenseMap<CXXRecordDecl *, bool>::iterator, bool>
     Pos = VTablesUsed.insert(std::make_pair(Class, DefinitionRequired));
   if (!Pos.second) {
     // If we already had an entry, check to see if we are promoting this vtable
@@ -18609,7 +18609,6 @@ bool Sema::DefineUsedVTables() {
     CXXRecordDecl *Class = VTableUses[I].first->getDefinition();
     if (!Class)
       continue;
-
     TemplateSpecializationKind ClassTSK =
         Class->getTemplateSpecializationKind();
 

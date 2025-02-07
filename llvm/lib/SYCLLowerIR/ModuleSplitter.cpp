@@ -366,7 +366,7 @@ ModuleDesc extractSubModule(const ModuleDesc &MD,
       G.setLinkage(GlobalValue::LinkageTypes::LinkOnceODRLinkage);
     }
   }
-  
+
   // Replace entry points with cloned ones.
   EntryPointSet NewEPs;
   const EntryPointSet &EPs = ModuleEntryPoints.Functions;

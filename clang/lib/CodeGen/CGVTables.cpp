@@ -1097,7 +1097,6 @@ static bool shouldEmitAvailableExternallyVTable(const CodeGenModule &CGM,
 /// Note that we only call this at the end of the translation unit.
 llvm::GlobalVariable::LinkageTypes
 CodeGenModule::getVTableLinkage(const CXXRecordDecl *RD) {
-
   if (!RD->isExternallyVisible())
     return llvm::GlobalVariable::InternalLinkage;
   
@@ -1202,7 +1201,7 @@ CodeGenModule::getVTableLinkage(const CXXRecordDecl *RD) {
 /// This is only called for vtables that _must_ be emitted (mainly due to key
 /// functions).  For weak vtables, CodeGen tracks when they are needed and
 /// emits them as-needed.
-void CodeGenModule::EmitVTable(const CXXRecordDecl *theClass) {
+void CodeGenModule::EmitVTable(CXXRecordDecl *theClass) {
   VTables.GenerateClassData(theClass);
 }
 

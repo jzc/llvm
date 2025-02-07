@@ -1414,7 +1414,7 @@ public:
 
   void EmitExternalDeclaration(const DeclaratorDecl *D);
 
-  void EmitVTable(const CXXRecordDecl *Class);
+  void EmitVTable(CXXRecordDecl *Class);
 
   void RefreshTypeCacheForClass(const CXXRecordDecl *Class);
 

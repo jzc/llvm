@@ -16176,7 +16176,7 @@ Decl *Sema::ActOnFinishFunctionBody(Decl *dcl, Stmt *Body,
 
         // If this is a structor, we need a vtable.
         if (CXXConstructorDecl *Constructor = dyn_cast<CXXConstructorDecl>(FD))
-          MarkVTableUsed(FD->getLocation(), Constructor->getParent()/*, getLangOpts().SYCLIsDevice*/);
+          MarkVTableUsed(FD->getLocation(), Constructor->getParent());
         else if (CXXDestructorDecl *Destructor =
                      dyn_cast<CXXDestructorDecl>(FD))
           MarkVTableUsed(FD->getLocation(), Destructor->getParent());
