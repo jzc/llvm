@@ -1561,11 +1561,6 @@ void SemaSYCL::addSYCLAddIRAttributesFunctionAttr(
   for (const auto &[Key, Value] : Pairs) {
     if (Key == "indirectly-callable") {
       D->addAttr(SYCLDeviceAttr::CreateImplicit(Context));
-      llvm::outs() << "adding attrs: "; D->dump(llvm::outs()); llvm::outs() << "\n";
-      if (const auto *MethodD = dyn_cast<CXXMethodDecl>(D)) {
-        SemaRef.MarkVTableUsed(Args[0]->getExprLoc(), MethodD->getParent(), true);
-        llvm::outs() << "marking vtable used\n";
-      }
       break;
     }
   }

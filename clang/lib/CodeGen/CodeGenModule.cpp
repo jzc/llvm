@@ -3244,17 +3244,6 @@ void CodeGenModule::SetFunctionAttributes(GlobalDecl GD, llvm::Function *F,
     applySYCLAspectsMD(A, getContext(), getLLVMContext(), F,
                        "sycl_used_aspects");
 
-  // if (const auto *A = FD->getAttr<SYCLAddIRAttributesFunctionAttr>()) {
-  //   SmallVector<std::pair<std::string, std::string>, 4> Pairs =
-  //       A->getFilteredAttributeNameValuePairs(Context);
-
-  //   for (const auto &[Key, Value] : Pairs) {
-  //     if (Key == "indirectly-callable") {
-  //       D->addAttr(SYCLDeviceAttr::CreateImplicit(Context));
-  //       break;
-  //     }
-  //   }
-  // }
   if (getLangOpts().SYCLIsDevice &&
      FD->hasAttr<SYCLAddIRAttributesFunctionAttr>()) {
     const auto *A = FD->getAttr<SYCLAddIRAttributesFunctionAttr>();
