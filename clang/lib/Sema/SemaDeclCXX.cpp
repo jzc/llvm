@@ -7218,20 +7218,11 @@ void Sema::CheckCompletedCXXClass(Scope *S, CXXRecordDecl *Record) {
   if (getLangOpts().SYCLIsDevice && Record->hasAttr<SYCLScopeAttr>()) {
     SYCL().CheckSYCLScopeAttr(Record);
   }
-  if (getLangOpts().SYCLIsDevice) {
-    for (Decl *D : Record->decls()) {
-      if (const auto *A = D->getAttr<SYCLAddIRAttributesFunctionAttr>()) {
-        if (SemaSYCL::hasDependentExpr(A->args_begin(), A->args_size()))
-          continue;
-        auto NameValuePairs = A->getAttributeNameValuePairs(getASTContext());
-        for (const auto &Pair : NameValuePairs) {
-          if (Pair.first == "indirectly-callable") {
-            SemaRef.MarkVTableUsed(D->getLocation(), Record, true);
-          }
-        }
-      }
-    }
-  }
+  
+  if (getLangOpts().SYCLIsDevice)
+    for (Decl *D : Record->decls())
+      if (SemaSYCL::hasSYCLAddIRAttributesFunctionAttr(D, "indirectly-callable"))
+        SemaRef.MarkVTableUsed(D->getLocation(), Record, true);
 }
 
 /// Look up the special member function that would be called by a special
@@ -18619,15 +18610,16 @@ bool Sema::DefineUsedVTables() {
     const CXXMethodDecl *KeyFunction = Context.getCurrentKeyFunction(Class);
     // V-tables for non-template classes with an owning module are always
     // uniquely emitted in that module.
-    if (Class->isInCurrentModuleUnit()) {
+    // Additionally, in SYCL, we must emit (used) vtables in every module 
+    // in order for proper optional kernel feature analysis.
+    if (Class->isInCurrentModuleUnit() || getLangOpts().SYCLIsDevice) {
       DefineVTable = true;
     } else if (KeyFunction && !KeyFunction->hasBody()) {
       // If this class has a key function, but that key function is
       // defined in another translation unit, we don't need to emit the
       // vtable even though we're using it.
       // The key function is in another translation unit.
-      if (!getLangOpts().SYCLIsDevice)
-        DefineVTable = false;
+      DefineVTable = false;
       TemplateSpecializationKind TSK =
           KeyFunction->getTemplateSpecializationKind();
       assert(TSK != TSK_ExplicitInstantiationDefinition &&

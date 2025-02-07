@@ -353,7 +353,6 @@ ModuleDesc extractSubModule(const ModuleDesc &MD,
   // declarations and removed later.
   std::unique_ptr<Module> SubM = CloneModule(
       M, VMap, [&](const GlobalValue *GV) { return GVs.count(GV); });
-
   // Replace entry points with cloned ones.
   EntryPointSet NewEPs;
   const EntryPointSet &EPs = ModuleEntryPoints.Functions;
