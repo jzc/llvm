@@ -6,6 +6,9 @@
 // RUN: %{build} %S/Inputs/call.cpp %S/Inputs/vf.cpp -o %t.out %helper-includes
 // RUN: %{run} %t.out
 
+// RUN: %{build} %S/Inputs/call.cpp %S/Inputs/vf.cpp -o %t.out %helper-includes %O0
+// RUN: %{run} %t.out
+
 #include "Inputs/declarations.hpp"
 
 #include <iostream>

@@ -354,19 +354,6 @@ ModuleDesc extractSubModule(const ModuleDesc &MD,
   std::unique_ptr<Module> SubM = CloneModule(
       M, VMap, [&](const GlobalValue *GV) { return GVs.count(GV); });
 
-  // Update the linkage type of the vtables to linkonce_odr to avoid multiple
-  // definitions after splitting.
-  for (auto &G : SubM->globals()) {
-    if (G.isDeclaration())
-      continue;
-    if (!G.hasName())
-      continue;
-    std::string demangledName = demangle(G.getName());
-    if (StringRef(demangledName).starts_with("vtable for")) {
-      G.setLinkage(GlobalValue::LinkageTypes::LinkOnceODRLinkage);
-    }
-  }
-
   // Replace entry points with cloned ones.
   EntryPointSet NewEPs;
   const EntryPointSet &EPs = ModuleEntryPoints.Functions;

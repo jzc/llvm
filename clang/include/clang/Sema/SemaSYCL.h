@@ -655,6 +655,8 @@ public:
   void addIntelReqdSubGroupSizeAttr(Decl *D, const AttributeCommonInfo &CI,
                                     Expr *E);
   void handleKernelEntryPointAttr(Decl *D, const ParsedAttr &AL);
+
+  static bool hasSYCLAddIRAttributesFunctionAttr(const Decl *D, StringRef Attr);
 };
 
 } // namespace clang
