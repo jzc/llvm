@@ -3245,7 +3245,7 @@ void CodeGenModule::SetFunctionAttributes(GlobalDecl GD, llvm::Function *F,
                        "sycl_used_aspects");
 
   if (getLangOpts().SYCLIsDevice &&
-     FD->hasAttr<SYCLAddIRAttributesFunctionAttr>()) {
+      FD->hasAttr<SYCLAddIRAttributesFunctionAttr>()) {
     const auto *A = FD->getAttr<SYCLAddIRAttributesFunctionAttr>();
     SmallVector<std::pair<std::string, std::string>, 4> NameValuePairs =
         A->getFilteredAttributeNameValuePairs(getContext());

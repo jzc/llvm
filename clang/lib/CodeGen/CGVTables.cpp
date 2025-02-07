@@ -1124,9 +1124,9 @@ CodeGenModule::getVTableLinkage(const CXXRecordDecl *RD) {
                         : keyFunction->getTemplateSpecializationKind();
 
     bool IndirectlyCallable = false;
-    if (getLangOpts().SYCLIsDevice && 
-        keyFunction &&
-        SemaSYCL::hasSYCLAddIRAttributesFunctionAttr(keyFunction, "indirectly-callable"))
+    if (getLangOpts().SYCLIsDevice && keyFunction &&
+        SemaSYCL::hasSYCLAddIRAttributesFunctionAttr(keyFunction,
+                                                     "indirectly-callable"))
       IndirectlyCallable = true;
 
     switch (Kind) {

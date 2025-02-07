@@ -7216,7 +7216,8 @@ void SemaSYCL::handleKernelEntryPointAttr(Decl *D, const ParsedAttr &AL) {
                  SYCLKernelEntryPointAttr(SemaRef.Context, AL, TSI));
 }
 
-bool SemaSYCL::hasSYCLAddIRAttributesFunctionAttr(const Decl *D, StringRef Attr) {
+bool SemaSYCL::hasSYCLAddIRAttributesFunctionAttr(const Decl *D,
+                                                  StringRef Attr) {
   if (const auto *A = D->getAttr<SYCLAddIRAttributesFunctionAttr>()) {
     if (hasDependentExpr(A->args_begin(), A->args_size()))
       return false;

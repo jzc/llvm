@@ -7218,10 +7218,11 @@ void Sema::CheckCompletedCXXClass(Scope *S, CXXRecordDecl *Record) {
   if (getLangOpts().SYCLIsDevice && Record->hasAttr<SYCLScopeAttr>()) {
     SYCL().CheckSYCLScopeAttr(Record);
   }
-  
+
   if (getLangOpts().SYCLIsDevice)
     for (Decl *D : Record->decls())
-      if (SemaSYCL::hasSYCLAddIRAttributesFunctionAttr(D, "indirectly-callable"))
+      if (SemaSYCL::hasSYCLAddIRAttributesFunctionAttr(D,
+                                                       "indirectly-callable"))
         SemaRef.MarkVTableUsed(D->getLocation(), Record, true);
 }
 
@@ -18610,7 +18611,7 @@ bool Sema::DefineUsedVTables() {
     const CXXMethodDecl *KeyFunction = Context.getCurrentKeyFunction(Class);
     // V-tables for non-template classes with an owning module are always
     // uniquely emitted in that module.
-    // Additionally, in SYCL, we must emit (used) vtables in every module 
+    // Additionally, in SYCL, we must emit (used) vtables in every module
     // in order for proper optional kernel feature analysis.
     if (Class->isInCurrentModuleUnit() || getLangOpts().SYCLIsDevice) {
       DefineVTable = true;
