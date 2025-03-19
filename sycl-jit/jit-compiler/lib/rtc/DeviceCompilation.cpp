@@ -632,12 +632,13 @@ static void encodeProperties(PropertySetRegistry &Properties,
          zip_equal(PropertySet, FrozenPropSet.Values)) {
       const auto &PropertyName = KV2.first;
       const auto &PropertyValue = KV2.second;
-      FrozenProp = PropertyValue.getType() == PropertyValue::Type::UINT32
-                       ? FrozenPropertyValue{PropertyName.str(),
-                                             PropertyValue.asUint32()}
-                       : FrozenPropertyValue{
-                             PropertyName.str(), PropertyValue.asRawByteArray(),
-                             PropertyValue.getRawByteArraySize()};
+      FrozenProp =
+          PropertyValue.getType() == PropertyValue::Type::UINT32
+              ? FrozenPropertyValue{PropertyName.str(),
+                                    PropertyValue.asUint32()}
+              : FrozenPropertyValue{PropertyName.str(),
+                                    PropertyValue.asByteArray().bytes_begin(),
+                                    PropertyValue.asByteArray().size()};
     }
   };
 }

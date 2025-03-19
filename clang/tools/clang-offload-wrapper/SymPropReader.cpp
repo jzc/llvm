@@ -205,16 +205,7 @@ SymPropReader::getPropRegistry() {
                    llvm::util::PropertyValue::BYTE_ARRAY) {
           auto Data_AsStringRef =
               getValueAsStringRef(CurrentSymPropsM.get(), Property_ValAddr);
-
-          llvm::util::PropertyValue::SizeTy DataBitSize = 0;
-          for (size_t I = 0; I < sizeof(llvm::util::PropertyValue::SizeTy); ++I)
-            DataBitSize |=
-                (llvm::util::PropertyValue::SizeTy)Data_AsStringRef[I]
-                << (8 * I);
-          llvm::util::PropertyValue PV(
-              reinterpret_cast<const unsigned char *>(Data_AsStringRef.data()) +
-                  sizeof(llvm::util::PropertyValue::SizeTy),
-              DataBitSize);
+          llvm::util::PropertyValue PV(Data_AsStringRef);
           PropSet.insert(std::pair(Property_Name_AsStringRef.rtrim('\0'), PV));
         } else {
           llvm_unreachable_internal("unsupported property");

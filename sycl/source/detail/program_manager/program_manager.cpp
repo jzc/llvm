@@ -2049,7 +2049,7 @@ void ProgramManager::addImages(sycl_device_binaries DeviceBinary) {
         // * 4 bytes - Size of the underlying type in the device_global.
         // * 4 bytes - 0 if device_global has device_image_scope and any value
         //             otherwise.
-        DeviceGlobalInfo.dropBytes(8);
+        // DeviceGlobalInfo.dropBytes(8);
         auto [TypeSize, DeviceImageScopeDecorated] =
             DeviceGlobalInfo.consume<std::uint32_t, std::uint32_t>();
         assert(DeviceGlobalInfo.empty() && "Extra data left!");
@@ -2085,7 +2085,7 @@ void ProgramManager::addImages(sycl_device_binaries DeviceBinary) {
         // * 4 bytes - Size of the underlying type in the host_pipe.
         // Note: Property may be padded.
 
-        HostPipeInfo.dropBytes(8);
+        // HostPipeInfo.dropBytes(8);
         auto TypeSize = HostPipeInfo.consume<std::uint32_t>();
         assert(HostPipeInfo.empty() && "Extra data left!");
 
@@ -3496,7 +3496,7 @@ checkDevSupportDeviceRequirements(const device &Dev,
     ByteArray Aspects =
         DeviceBinaryProperty(*(AspectsPropIt.value())).asByteArray();
     // Drop 8 bytes describing the size of the byte array.
-    Aspects.dropBytes(8);
+    // Aspects.dropBytes(8);
     while (!Aspects.empty()) {
       aspect Aspect = Aspects.consume<aspect>();
       if (!Dev.has(Aspect))
@@ -3519,7 +3519,7 @@ checkDevSupportDeviceRequirements(const device &Dev,
     ByteArray JointMatrixByteArray =
         DeviceBinaryProperty(*(JointMatrixPropIt.value())).asByteArray();
     // Drop 8 bytes describing the size of the byte array.
-    JointMatrixByteArray.dropBytes(8);
+    // JointMatrixByteArray.dropBytes(8);
     std::string JointMatrixByteArrayToStr;
     while (!JointMatrixByteArray.empty()) {
       JointMatrixByteArrayToStr += JointMatrixByteArray.consume<char>();
@@ -3543,7 +3543,7 @@ checkDevSupportDeviceRequirements(const device &Dev,
     ByteArray JointMatrixMadByteArray =
         DeviceBinaryProperty(*(JointMatrixMadPropIt.value())).asByteArray();
     // Drop 8 bytes describing the size of the byte array.
-    JointMatrixMadByteArray.dropBytes(8);
+    // JointMatrixMadByteArray.dropBytes(8);
     std::string JointMatrixMadByteArrayToStr;
     while (!JointMatrixMadByteArray.empty()) {
       JointMatrixMadByteArrayToStr += JointMatrixMadByteArray.consume<char>();
@@ -3567,7 +3567,7 @@ checkDevSupportDeviceRequirements(const device &Dev,
 
     ByteArray ReqdWGSize = DeviceBinaryProperty(*(it.value())).asByteArray();
     // Drop 8 bytes describing the size of the byte array.
-    ReqdWGSize.dropBytes(8);
+    // ReqdWGSize.dropBytes(8);
     uint64_t ReqdWGSizeAllDimsTotal = 1;
     std::vector<uint64_t> ReqdWGSizeVec;
     int Dims = 0;
@@ -3723,7 +3723,7 @@ bool doesImageTargetMatchDevice(const RTDeviceBinaryImage &Img,
   // some device, check if that architecture is Device's architecture.
   auto CompileTargetByteArray = DeviceBinaryProperty(*PropIt).asByteArray();
   // Drop 8 bytes describing the size of the byte array.
-  CompileTargetByteArray.dropBytes(8);
+  // CompileTargetByteArray.dropBytes(8);
   std::string_view CompileTarget(
       reinterpret_cast<const char *>(&CompileTargetByteArray[0]),
       CompileTargetByteArray.size());

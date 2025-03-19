@@ -444,11 +444,11 @@ struct Wrapper {
         break;
       }
       case llvm::util::PropertyValue::BYTE_ARRAY: {
-        const char *Ptr =
-            reinterpret_cast<const char *>(Prop.second.asRawByteArray());
-        uint64_t Size = Prop.second.getRawByteArraySize();
-        PropValSize = ConstantInt::get(Type::getInt64Ty(C), Size);
-        PropValAddr = addRawDataToModule(ArrayRef<char>(Ptr, Size), "prop_val");
+        StringRef ByteArrayRef = Prop.second.asByteArray();
+        PropValSize =
+            ConstantInt::get(Type::getInt64Ty(C), ByteArrayRef.size());
+        PropValAddr = addRawDataToModule(
+            {ByteArrayRef.data(), ByteArrayRef.size()}, "prop_val");
         break;
       }
       default:

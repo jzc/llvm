@@ -580,9 +580,8 @@ public:
              RawImg->getRegisteredKernels()) {
 
           auto BA = DeviceBinaryProperty(RKProp).asByteArray();
-          auto MangledNameLen = BA.consume<uint64_t>() / 8 /*bits in a byte*/;
           std::string_view MangledName{
-              reinterpret_cast<const char *>(BA.begin()), MangledNameLen};
+              reinterpret_cast<const char *>(BA.begin()), BA.size()};
           MangledKernelNames.emplace(RKProp->Name, MangledName);
         }
 

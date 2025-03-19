@@ -340,7 +340,7 @@ private:
     ByteArray DefValDescriptors =
         DeviceBinaryProperty(*SCDefValRange.begin()).asByteArray();
     // First 8 bytes are consumed by the size of the property.
-    DefValDescriptors.dropBytes(8);
+    // DefValDescriptors.dropBytes(8);
     return DefValDescriptors;
   }
 
@@ -358,7 +358,7 @@ private:
 
         ByteArray Descriptors = DeviceBinaryProperty(*SCIt).asByteArray();
         // First 8 bytes are consumed by the size of the property.
-        Descriptors.dropBytes(8);
+        // Descriptors.dropBytes(8);
 
         // Expected layout is vector of 3-component tuples (flattened into a
         // vector of scalars), where each tuple consists of: ID of a scalar spec
