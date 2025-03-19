@@ -116,12 +116,10 @@ std::vector<sycl::unittest::MockProperty>
 createVFPropertySet(const std::string &VFSets) {
   std::vector<sycl::unittest::MockProperty> Props;
   uint64_t PropSize = VFSets.size();
-  std::vector<char> Storage(/* bytes for size */ 8 + PropSize +
+  std::vector<char> Storage(PropSize +
                             /* null terminator */ 1);
-  auto *SizePtr = reinterpret_cast<char *>(&PropSize);
-  std::uninitialized_copy(SizePtr, SizePtr + sizeof(uint64_t), Storage.data());
   std::uninitialized_copy(VFSets.data(), VFSets.data() + PropSize,
-                          Storage.data() + /* bytes for size */ 8);
+                          Storage.data());
   Storage.back() = '\0';
   const std::string PropName = "uses-virtual-functions-set";
   sycl::unittest::MockProperty Prop(PropName, Storage,

@@ -393,12 +393,8 @@ inline MockProperty makeSpecConstant(std::vector<char> &ValData,
                                      std::tuple<T...> DefaultValues) {
   const size_t PropByteArraySize = sizeof...(T) * sizeof(uint32_t) * 3;
   std::vector<char> DescData;
-  DescData.resize(8 + PropByteArraySize);
-  std::uninitialized_copy(&PropByteArraySize, &PropByteArraySize + 8,
-                          DescData.data());
+  DescData.resize(PropByteArraySize);
 
-  if (ValData.empty())
-    ValData.resize(8); // Reserve first 8 bytes for array size.
   size_t PrevSize = ValData.size();
 
   {
@@ -408,16 +404,12 @@ inline MockProperty makeSpecConstant(std::vector<char> &ValData,
         PrevSize + *std::prev(Offsets.end()) +
         sizeof(typename std::tuple_element<sizeof...(T) - 1,
                                            decltype(DefaultValues)>::type));
-    // Update raw data array size
-    uint64_t NewValSize = ValData.size();
-    std::uninitialized_copy(&NewValSize, &NewValSize + sizeof(uint64_t),
-                            ValData.data());
   }
 
   auto FillData = [PrevOffset = 0, PrevSize, &ValData, &IDs, &Offsets,
                    &DescData](uint32_t Idx, const char *Begin,
                               const char *End) mutable {
-    const size_t Offset = 8 + Idx * sizeof(uint32_t) * 3;
+    const size_t Offset = Idx * sizeof(uint32_t) * 3;
 
     uint32_t ValSize = std::distance(Begin, End);
     const char *IDsBegin =
@@ -518,14 +510,12 @@ makeKernelParamOptInfo(const std::string &Name, const size_t NumArgs,
 inline MockProperty
 makeDeviceGlobalInfo(const std::string &Name, const uint32_t TypeSize,
                      const std::uint32_t DeviceImageScoped) {
-  constexpr size_t BYTES_FOR_SIZE = 8;
   const std::uint64_t BytesForArgs = 2 * sizeof(std::uint32_t);
   std::vector<char> DescData;
-  DescData.resize(BYTES_FOR_SIZE + BytesForArgs);
-  std::memcpy(DescData.data(), &BytesForArgs, sizeof(BytesForArgs));
-  std::memcpy(DescData.data() + BYTES_FOR_SIZE, &TypeSize, sizeof(TypeSize));
-  std::memcpy(DescData.data() + BYTES_FOR_SIZE + sizeof(TypeSize),
-              &DeviceImageScoped, sizeof(DeviceImageScoped));
+  DescData.resize(BytesForArgs);
+  std::memcpy(DescData.data(), &TypeSize, sizeof(TypeSize));
+  std::memcpy(DescData.data() + sizeof(TypeSize), &DeviceImageScoped,
+              sizeof(DeviceImageScoped));
 
   MockProperty Prop{Name, DescData, SYCL_PROPERTY_TYPE_BYTE_ARRAY};
 
@@ -539,12 +529,10 @@ makeDeviceGlobalInfo(const std::string &Name, const uint32_t TypeSize,
 /// decorated.
 inline MockProperty makeHostPipeInfo(const std::string &Name,
                                      const uint32_t TypeSize) {
-  constexpr size_t BYTES_FOR_SIZE = 8;
   const std::uint64_t BytesForArgs = sizeof(std::uint32_t);
   std::vector<char> DescData;
-  DescData.resize(BYTES_FOR_SIZE + BytesForArgs);
-  std::memcpy(DescData.data(), &BytesForArgs, sizeof(BytesForArgs));
-  std::memcpy(DescData.data() + BYTES_FOR_SIZE, &TypeSize, sizeof(TypeSize));
+  DescData.resize(BytesForArgs);
+  std::memcpy(DescData.data(), &TypeSize, sizeof(TypeSize));
 
   MockProperty Prop{Name, DescData, SYCL_PROPERTY_TYPE_BYTE_ARRAY};
 
@@ -553,28 +541,19 @@ inline MockProperty makeHostPipeInfo(const std::string &Name,
 
 /// Utility function to add aspects to property set.
 inline MockProperty makeAspectsProp(const std::vector<sycl::aspect> &Aspects) {
-  const size_t BYTES_FOR_SIZE = 8;
-  std::vector<char> ValData(BYTES_FOR_SIZE +
-                            Aspects.size() * sizeof(sycl::aspect));
-  uint64_t ValDataSize = ValData.size();
-  std::uninitialized_copy(&ValDataSize, &ValDataSize + sizeof(uint64_t),
-                          ValData.data());
+  std::vector<char> ValData(Aspects.size() * sizeof(sycl::aspect));
   auto *AspectsPtr = reinterpret_cast<const unsigned char *>(&Aspects[0]);
   std::uninitialized_copy(AspectsPtr, AspectsPtr + Aspects.size(),
-                          ValData.data() + BYTES_FOR_SIZE);
+                          ValData.data());
   return {"aspects", ValData, SYCL_PROPERTY_TYPE_BYTE_ARRAY};
 }
 
 inline MockProperty makeReqdWGSizeProp(const std::vector<int> &ReqdWGSize) {
-  const size_t BYTES_FOR_SIZE = 8;
-  std::vector<char> ValData(BYTES_FOR_SIZE + ReqdWGSize.size() * sizeof(int));
-  uint64_t ValDataSize = ValData.size();
-  std::uninitialized_copy(&ValDataSize, &ValDataSize + sizeof(uint64_t),
-                          ValData.data());
+  std::vector<char> ValData(ReqdWGSize.size() * sizeof(int));
   auto *ReqdWGSizePtr = reinterpret_cast<const unsigned char *>(&ReqdWGSize[0]);
   std::uninitialized_copy(ReqdWGSizePtr,
                           ReqdWGSizePtr + ReqdWGSize.size() * sizeof(int),
-                          ValData.data() + BYTES_FOR_SIZE);
+                          ValData.data());
   return {"reqd_work_group_size", ValData, SYCL_PROPERTY_TYPE_BYTE_ARRAY};
 }
 

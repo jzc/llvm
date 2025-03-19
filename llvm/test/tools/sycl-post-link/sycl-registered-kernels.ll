@@ -1,7 +1,7 @@
 ; This test checks that the sycl-post-link ouputs registered kernel data 
 ; from !sycl_registered_kernels metadata into the SYCL/registerd_kernels section.
 
-; RUN: sycl-post-link %s -properties -split=auto -o %t.table
+; RUN: sycl-post-link %s -properties -json=0 -split=auto -o %t.table
 ; RUN: FileCheck %s -input-file=%t_0.prop --check-prefixes=CHECK-WITH-ASPECT,CHECK \
 ; RUN:   --implicit-check-not=kernel_with_aspects
 ; RUN: FileCheck %s -input-file=%t_1.prop --check-prefixes=CHECK-NO-ASPECT,CHECK

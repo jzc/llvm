@@ -1,4 +1,4 @@
-; RUN: sycl-post-link -split=auto -properties -emit-exported-symbols \
+; RUN: sycl-post-link -split=auto -properties -json=0 -emit-exported-symbols \
 ; RUN:     -emit-imported-symbols -emit-only-kernels-as-entry-points \
 ; RUN:     -allow-device-image-dependencies \
 ; RUN:     -S < %s -o %t.table

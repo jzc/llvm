@@ -252,6 +252,9 @@ cl::opt<bool> GenerateDeviceImageWithDefaultSpecConsts{
              "replaced with default values from specialization id(s)."),
     cl::cat(PostLinkCat)};
 
+cl::opt<bool> OutputJson{"json", cl::desc("Output properties in JSON format"),
+                         cl::cat(PostLinkCat), cl::init(true)};
+
 struct IrPropSymFilenameTriple {
   std::string Ir;
   std::string Prop;
@@ -341,8 +344,10 @@ std::string saveModuleProperties(module_split::ModuleDesc &MD,
   std::string SCFile = makeResultFileName(".prop", I, NewSuff);
   raw_fd_ostream SCOut(SCFile, EC);
   checkError(EC, "error opening file '" + SCFile + "'");
-  PropSet.write(SCOut);
-
+  if (OutputJson)
+    PropSet.writeJSON(SCOut);
+  else
+    PropSet.write(SCOut);
   return SCFile;
 }
 

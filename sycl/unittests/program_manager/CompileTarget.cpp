@@ -22,8 +22,8 @@ namespace unittest {
 static inline MockDeviceImage
 generateImageWithCompileTarget(std::string KernelName,
                                std::string CompileTarget) {
-  std::vector<char> Data(8 + CompileTarget.size());
-  std::copy(CompileTarget.begin(), CompileTarget.end(), Data.data() + 8);
+  std::vector<char> Data(CompileTarget.size());
+  std::copy(CompileTarget.begin(), CompileTarget.end(), Data.data());
   MockProperty CompileTargetProperty("compile_target", Data,
                                      SYCL_PROPERTY_TYPE_BYTE_ARRAY);
   MockPropertySet PropSet;

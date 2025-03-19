@@ -1,4 +1,4 @@
-; RUN: sycl-post-link -properties -split=auto -symbols -S < %s -o %t.table
+; RUN: sycl-post-link -properties -json=0 -split=auto -symbols -S < %s -o %t.table
 ;
 ; This is the same as auto-module-split-1 test with the only difference is that
 ; @_Z3foov is marked with "referenced-indirectly" attribute.

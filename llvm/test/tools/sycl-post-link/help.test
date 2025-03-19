@@ -1,4 +1,4 @@
-// RUN: sycl-post-link -properties --help | FileCheck %s
+// RUN: sycl-post-link -properties -json=0 --help | FileCheck %s
 
 CHECK: OVERVIEW: SYCL post-link device code processing tool.
 CHECK: This is a collection of utilities run on device code's LLVM IR before

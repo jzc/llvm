@@ -8,7 +8,7 @@
 ; (compare %struct.scary and @_ZL16scary_spec_const)
 ; This test makes that the spec constant pass can handle such cases.
 ; (note: IR generated from sycl/test-e2e/SpecConstants/2020/hierarchy.cpp)
-; RUN: sycl-post-link -properties --spec-const=native -S %s -o %t.table
+; RUN: sycl-post-link -properties -json=0 --spec-const=native -S %s -o %t.table
 ; RUN: FileCheck %s -input-file=%t_0.ll
 
 target datalayout = "e-i64:64-v16:16-v24:32-v32:32-v48:64-v96:128-v192:256-v256:256-v512:512-v1024:1024-n8:16:32:64-G1"

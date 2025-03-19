@@ -52,13 +52,9 @@ generateImage(std::initializer_list<std::string> KernelNames,
   sycl::unittest::MockPropertySet PropSet;
   std::vector<sycl::unittest::MockProperty> Props;
   uint64_t PropSize = VFSets.size();
-  std::vector<char> Storage(/* bytes for size */ 8 + PropSize +
-                            /* null terminator */ 1);
-  auto *SizePtr = reinterpret_cast<char *>(&PropSize);
-  std::uninitialized_copy(SizePtr, SizePtr + sizeof(uint64_t), Storage.data());
+  std::vector<char> Storage(PropSize);
   std::uninitialized_copy(VFSets.data(), VFSets.data() + PropSize,
-                          Storage.data() + /* bytes for size */ 8);
-  Storage.back() = '\0';
+                          Storage.data());
   const std::string PropName =
       UsesVFSets ? "uses-virtual-functions-set" : "virtual-functions-set";
   sycl::unittest::MockProperty Prop(PropName, Storage,

@@ -8,21 +8,16 @@
 
 #include "llvm/Support/PropertySetIO.h"
 
-#include "llvm/ADT/APInt.h"
 #include "llvm/ADT/StringExtras.h"
-#include "llvm/Support/Base64.h"
 #include "llvm/Support/Error.h"
-#include "llvm/Support/LineIterator.h"
+#include "llvm/Support/JSON.h"
 
-#include <memory>
 #include <string>
 
 using namespace llvm::util;
 using namespace llvm;
 
 namespace {
-
-using byte = Base64::byte;
 
 ::llvm::Error makeError(const Twine &Msg) {
   return createStringError(std::error_code{}, Msg);
@@ -31,73 +26,56 @@ using byte = Base64::byte;
 } // anonymous namespace
 
 Expected<std::unique_ptr<PropertySetRegistry>>
-PropertySetRegistry::read(const MemoryBuffer *Buf) {
+PropertySetRegistry::readJSON(const MemoryBuffer *Buf) {
   auto Res = std::make_unique<PropertySetRegistry>();
-  PropertySet *CurPropSet = nullptr;
+  Expected<json::Value> V = json::parse(Buf->getBuffer());
+  if (!V)
+    return V.takeError();
+  const json::Object *O = V->getAsObject();
+  if (!O)
+    return makeError("expected JSON object");
+  for (const auto &[CategoryName, Value] : *O) {
+    const json::Array *PropsArray = Value.getAsArray();
+    if (!PropsArray)
+      return makeError("expected JSON array for properties");
+    PropertySet &PropSet = Res->PropSetMap[StringRef(CategoryName)];
+    for (const auto &PropPair : *PropsArray) {
+      const json::Array *PropArray = PropPair.getAsArray();
+      if (!PropArray || PropArray->size() != 2)
+        return makeError(
+            "expected property as [PropertyName, PropertyValue] pair");
 
-  for (line_iterator LI(*Buf); !LI.is_at_end(); LI++) {
-    // see if this line starts a new property set
-    if (LI->starts_with("[")) {
-      // yes - parse the category (property name)
-      auto EndPos = LI->rfind(']');
-      if (EndPos == StringRef::npos)
-        return makeError("invalid line: " + *LI);
-      StringRef Category = LI->substr(1, EndPos - 1);
-      CurPropSet = &(*Res)[Category];
-      continue;
+      const json::Value &PropNameVal = (*PropArray)[0];
+      const json::Value &PropValueVal = (*PropArray)[1];
+
+      std::optional<StringRef> PropName = PropNameVal.getAsString();
+      if (!PropName)
+        return makeError("expected property name as string");
+
+      PropertyValue Prop;
+      if (std::optional<uint64_t> Val = PropValueVal.getAsUINT64()) {
+        Prop = PropertyValue(static_cast<uint32_t>(*Val));
+      } else if (const json::Array *Val = PropValueVal.getAsArray()) {
+        SmallVector<unsigned char, 8> Vec;
+        for (const auto &V : *Val) {
+          std::optional<uint64_t> Byte = V.getAsUINT64();
+          if (!Byte)
+            return makeError("invalid byte array value");
+          if (*Byte > std::numeric_limits<unsigned char>::max())
+            return makeError("byte array value out of range");
+          Vec.push_back(static_cast<unsigned char>(*Byte));
+        }
+        Prop = PropertyValue(Vec);
+      } else {
+        return makeError("unsupported property type");
+      }
+
+      if (PropSet.find(*PropName) != PropSet.end())
+        return makeError("duplicate property name");
+      PropSet.insert({*PropName, Prop});
     }
-    if (!CurPropSet)
-      return makeError("property category missing");
-    // parse name and type+value
-    auto Parts = LI->split('=');
-
-    if (Parts.first.empty() || Parts.second.empty())
-      return makeError("invalid property line: " + *LI);
-    auto TypeVal = Parts.second.split('|');
-
-    if (TypeVal.first.empty() || TypeVal.second.empty())
-      return makeError("invalid property value: " + Parts.second);
-    APInt Tint;
-
-    // parse type
-    if (TypeVal.first.getAsInteger(10, Tint))
-      return makeError("invalid property type: " + TypeVal.first);
-    Expected<PropertyValue::Type> Ttag =
-        PropertyValue::getTypeTag(static_cast<int>(Tint.getSExtValue()));
-    StringRef Val = TypeVal.second;
-
-    if (!Ttag)
-      return Ttag.takeError();
-    PropertyValue Prop(Ttag.get());
-
-    // parse value depending on its type
-    switch (Ttag.get()) {
-    case PropertyValue::Type::UINT32: {
-      APInt ValV;
-      if (Val.getAsInteger(10, ValV))
-        return createStringError(std::error_code{},
-                                 "invalid property value: ", Val.data());
-      Prop.set(static_cast<uint32_t>(ValV.getZExtValue()));
-      break;
-    }
-    case PropertyValue::Type::BYTE_ARRAY: {
-      Expected<std::unique_ptr<byte[]>> DecArr =
-          Base64::decode(Val.data(), Val.size());
-      if (!DecArr)
-        return DecArr.takeError();
-      Prop.set(DecArr.get().release());
-      break;
-    }
-    default:
-      return createStringError(std::error_code{},
-                               "unsupported property type: ", Ttag.get());
-    }
-    (*CurPropSet)[Parts.first] = std::move(Prop);
   }
-  if (!CurPropSet)
-    return makeError("invalid property set registry");
-
-  return Expected<std::unique_ptr<PropertySetRegistry>>(std::move(Res));
+  return Res;
 }
 
 namespace llvm {
@@ -109,8 +87,13 @@ raw_ostream &operator<<(raw_ostream &Out, const PropertyValue &Prop) {
     Out << Prop.asUint32();
     break;
   case PropertyValue::Type::BYTE_ARRAY: {
-    util::PropertyValue::SizeTy Size = Prop.getRawByteArraySize();
-    Base64::encode(Prop.asRawByteArray(), Out, (size_t)Size);
+    json::OStream J(Out);
+    J.array([&] {
+      auto ByteArrayRef = Prop.asByteArray();
+      for (const auto &Byte : ByteArrayRef) {
+        J.value(Byte);
+      }
+    });
     break;
   }
   default:
@@ -131,83 +114,31 @@ void PropertySetRegistry::write(raw_ostream &Out) const {
   }
 }
 
-namespace llvm {
-namespace util {
-
-template <> uint32_t &PropertyValue::getValueRef<uint32_t>() {
-  return Val.UInt32Val;
+void PropertySetRegistry::writeJSON(raw_ostream &Out) const {
+  json::OStream J(Out);
+  J.object([&] {
+    for (const auto &PropSet : PropSetMap) {
+      J.attributeArray(PropSet.first, [&] {
+        for (const auto &Props : PropSet.second) {
+          J.array([&] {
+            J.value(Props.first);
+            switch (Props.second.getType()) {
+            case PropertyValue::Type::UINT32:
+              J.value(Props.second.asUint32());
+              break;
+            case PropertyValue::Type::BYTE_ARRAY: {
+              auto ByteArrayRef = Props.second.asByteArray();
+              J.value(json::Array(ByteArrayRef.bytes()));
+              break;
+            }
+            default:
+              llvm_unreachable(("unsupported property type: " +
+                                utostr(Props.second.getType()))
+                                   .c_str());
+            }
+          });
+        }
+      });
+    }
+  });
 }
-
-template <> byte *&PropertyValue::getValueRef<byte *>() {
-  return Val.ByteArrayVal;
-}
-
-template <> PropertyValue::Type PropertyValue::getTypeTag<uint32_t>() {
-  return UINT32;
-}
-
-template <> PropertyValue::Type PropertyValue::getTypeTag<byte *>() {
-  return BYTE_ARRAY;
-}
-
-PropertyValue::PropertyValue(const byte *Data, SizeTy DataBitSize) {
-  constexpr int ByteSizeInBits = 8;
-  Ty = BYTE_ARRAY;
-  SizeTy DataSize = (DataBitSize + (ByteSizeInBits - 1)) / ByteSizeInBits;
-  constexpr size_t SizeFieldSize = sizeof(SizeTy);
-
-  // Allocate space for size and data.
-  Val.ByteArrayVal = new byte[SizeFieldSize + DataSize];
-
-  // Write the size into first bytes.
-  for (size_t I = 0; I < SizeFieldSize; ++I) {
-    Val.ByteArrayVal[I] = (byte)DataBitSize;
-    DataBitSize >>= ByteSizeInBits;
-  }
-  // Append data.
-  std::memcpy(Val.ByteArrayVal + SizeFieldSize, Data, DataSize);
-}
-
-PropertyValue::PropertyValue(const PropertyValue &P) { *this = P; }
-
-PropertyValue::PropertyValue(PropertyValue &&P) { *this = std::move(P); }
-
-PropertyValue &PropertyValue::operator=(PropertyValue &&P) {
-  copy(P);
-
-  if (P.getType() == BYTE_ARRAY)
-    P.Val.ByteArrayVal = nullptr;
-  P.Ty = NONE;
-  return *this;
-}
-
-PropertyValue &PropertyValue::operator=(const PropertyValue &P) {
-  if (P.getType() == BYTE_ARRAY)
-    *this = PropertyValue(P.asByteArray(), P.getByteArraySizeInBits());
-  else
-    copy(P);
-  return *this;
-}
-
-void PropertyValue::copy(const PropertyValue &P) {
-  Ty = P.Ty;
-  Val = P.Val;
-}
-
-constexpr char PropertySetRegistry::SYCL_SPECIALIZATION_CONSTANTS[];
-constexpr char PropertySetRegistry::SYCL_DEVICELIB_REQ_MASK[];
-constexpr char PropertySetRegistry::SYCL_SPEC_CONSTANTS_DEFAULT_VALUES[];
-constexpr char PropertySetRegistry::SYCL_KERNEL_PARAM_OPT_INFO[];
-constexpr char PropertySetRegistry::SYCL_PROGRAM_METADATA[];
-constexpr char PropertySetRegistry::SYCL_MISC_PROP[];
-constexpr char PropertySetRegistry::SYCL_ASSERT_USED[];
-constexpr char PropertySetRegistry::SYCL_EXPORTED_SYMBOLS[];
-constexpr char PropertySetRegistry::SYCL_IMPORTED_SYMBOLS[];
-constexpr char PropertySetRegistry::SYCL_DEVICE_GLOBALS[];
-constexpr char PropertySetRegistry::SYCL_DEVICE_REQUIREMENTS[];
-constexpr char PropertySetRegistry::SYCL_HOST_PIPES[];
-constexpr char PropertySetRegistry::SYCL_VIRTUAL_FUNCTIONS[];
-constexpr char PropertySetRegistry::SYCL_IMPLICIT_LOCAL_ARG[];
-
-} // namespace util
-} // namespace llvm

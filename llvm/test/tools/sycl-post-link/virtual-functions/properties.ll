@@ -1,4 +1,4 @@
-; RUN: sycl-post-link -split=auto -properties -S < %s -o %t.table
+; RUN: sycl-post-link -split=auto -properties -json=0 -S < %s -o %t.table
 ;
 ; Device images with virtual functions in them should have the
 ; "virtual-functions-set" property under corresponding property set.

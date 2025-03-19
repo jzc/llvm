@@ -247,11 +247,16 @@ PropSetRegTy computeModuleProperties(const Module &M,
         continue; // Nothing to add
 
       const llvm::ArrayRef<uintptr_t> Arr = Bits.getData();
-      const unsigned char *Data =
-          reinterpret_cast<const unsigned char *>(Arr.begin());
-      llvm::util::PropertyValue::SizeTy DataBitSize = Bits.size();
-      Props.insert(std::make_pair(
-          NameInfoPair.first, llvm::util::PropertyValue(Data, DataBitSize)));
+      uint64_t DataBitSize = Bits.size();
+      // note: Bits.getMemorySize() is the number of bytes required to store
+      // Arr, but DataByteSize is the number of bytes required to store the
+      // relevant bits.
+      uint64_t DataByteSize = (DataBitSize + CHAR_BIT - 1) / CHAR_BIT;
+      SmallVector<uint8_t, 64> DataVec(sizeof(uint64_t) + Bits.getMemorySize());
+      std::memcpy(DataVec.data(), &DataBitSize, sizeof(uint64_t));
+      std::memcpy(DataVec.data() + sizeof(uint64_t), Arr.data(), DataByteSize);
+      Props.insert(std::make_pair(NameInfoPair.first,
+                                  llvm::util::PropertyValue(DataVec)));
     }
   }
   if (GlobProps.EmitExportedSymbols) {

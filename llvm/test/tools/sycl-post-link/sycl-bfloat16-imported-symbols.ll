@@ -2,7 +2,7 @@
 ; detect bfloat16 devicelib functions are used and add these used functions
 ; too imported symbol list.
 
-; RUN: sycl-post-link %s -emit-param-info -symbols -emit-imported-symbols -properties -split=auto -o %t.table
+; RUN: sycl-post-link %s -emit-param-info -symbols -emit-imported-symbols -properties -json=0 -split=auto -o %t.table
 ; RUN: FileCheck %s -input-file=%t_0.prop --check-prefix=CHECK-BF16
 
 ; CHECK-BF16: [SYCL/imported symbols]

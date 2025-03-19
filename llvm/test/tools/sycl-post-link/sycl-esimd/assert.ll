@@ -1,4 +1,4 @@
-; RUN: sycl-post-link -properties -split-esimd  -S < %s -o %t.table
+; RUN: sycl-post-link -properties -json=0 -split-esimd  -S < %s -o %t.table
 ; RUN: FileCheck %s -input-file=%t_esimd_0.prop
 
 ; Verify we mark a image with an ESIMD kernel with the isEsimdImage property
