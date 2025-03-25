@@ -741,7 +741,7 @@ ProgramManager::collectDependentDeviceImagesForVirtualFunctions(
   std::set<std::string> HandledSets;
   std::queue<std::string> WorkList;
   for (const sycl_device_binary_property &VFProp : Img.getVirtualFunctions()) {
-    std::string StrValue = DeviceBinaryProperty(VFProp).asCString();
+    std::string_view StrValue = DeviceBinaryProperty(VFProp).asStringView();
     // Device image passed to this function is expected to contain SYCL kernels
     // and therefore it may only use virtual function sets, but cannot provide
     // them. We expect to see just a single property here
@@ -767,7 +767,7 @@ ProgramManager::collectDependentDeviceImagesForVirtualFunctions(
       // we haven't done so already.
       for (const sycl_device_binary_property &VFProp :
            BinImage->getVirtualFunctions()) {
-        std::string StrValue = DeviceBinaryProperty(VFProp).asCString();
+        std::string_view StrValue = DeviceBinaryProperty(VFProp).asStringView();
         for (const auto &SetName : detail::split_string(StrValue, ',')) {
           if (HandledSets.insert(SetName).second)
             WorkList.push(SetName);
@@ -1955,7 +1955,7 @@ void ProgramManager::addImages(sycl_device_binaries DeviceBinary) {
     // Record mapping between virtual function sets and device images
     for (const sycl_device_binary_property &VFProp :
          Img->getVirtualFunctions()) {
-      std::string StrValue = DeviceBinaryProperty(VFProp).asCString();
+      std::string_view StrValue = DeviceBinaryProperty(VFProp).asStringView();
       for (const auto &SetName : detail::split_string(StrValue, ','))
         m_VFSet2BinImage[SetName].insert(Img.get());
     }
@@ -2016,8 +2016,8 @@ void ProgramManager::addImages(sycl_device_binaries DeviceBinary) {
     {
       sycl_device_binary_property SanProp = Img->getProperty("sanUsed");
       if (SanProp) {
-        std::string SanValue =
-            detail::DeviceBinaryProperty(SanProp).asCString();
+        std::string_view SanValue =
+            detail::DeviceBinaryProperty(SanProp).asStringView();
 
         if (SanValue.rfind("asan", 0) == 0) { // starts_with
           m_SanitizerFoundInImage = SanitizerType::AddressSanitizer;
@@ -2045,11 +2045,9 @@ void ProgramManager::addImages(sycl_device_binaries DeviceBinary) {
             DeviceBinaryProperty(DeviceGlobal).asByteArray();
 
         // The supplied device_global info property is expected to contain:
-        // * 8 bytes - Size of the property.
         // * 4 bytes - Size of the underlying type in the device_global.
         // * 4 bytes - 0 if device_global has device_image_scope and any value
         //             otherwise.
-        // DeviceGlobalInfo.dropBytes(8);
         auto [TypeSize, DeviceImageScopeDecorated] =
             DeviceGlobalInfo.consume<std::uint32_t, std::uint32_t>();
         assert(DeviceGlobalInfo.empty() && "Extra data left!");
@@ -2081,11 +2079,9 @@ void ProgramManager::addImages(sycl_device_binaries DeviceBinary) {
         ByteArray HostPipeInfo = DeviceBinaryProperty(HostPipe).asByteArray();
 
         // The supplied host_pipe info property is expected to contain:
-        // * 8 bytes - Size of the property.
         // * 4 bytes - Size of the underlying type in the host_pipe.
         // Note: Property may be padded.
 
-        // HostPipeInfo.dropBytes(8);
         auto TypeSize = HostPipeInfo.consume<std::uint32_t>();
         assert(HostPipeInfo.empty() && "Extra data left!");
 
@@ -2171,7 +2167,7 @@ void ProgramManager::removeImages(sycl_device_binaries DeviceBinary) {
 
     for (const sycl_device_binary_property &VFProp :
          Img->getVirtualFunctions()) {
-      std::string StrValue = DeviceBinaryProperty(VFProp).asCString();
+      std::string_view StrValue = DeviceBinaryProperty(VFProp).asStringView();
       for (const auto &SetName : detail::split_string(StrValue, ','))
         m_VFSet2BinImage.erase(SetName);
     }
@@ -3495,8 +3491,6 @@ checkDevSupportDeviceRequirements(const device &Dev,
   if (AspectsPropIt) {
     ByteArray Aspects =
         DeviceBinaryProperty(*(AspectsPropIt.value())).asByteArray();
-    // Drop 8 bytes describing the size of the byte array.
-    // Aspects.dropBytes(8);
     while (!Aspects.empty()) {
       aspect Aspect = Aspects.consume<aspect>();
       if (!Dev.has(Aspect))
@@ -3518,8 +3512,6 @@ checkDevSupportDeviceRequirements(const device &Dev,
 
     ByteArray JointMatrixByteArray =
         DeviceBinaryProperty(*(JointMatrixPropIt.value())).asByteArray();
-    // Drop 8 bytes describing the size of the byte array.
-    // JointMatrixByteArray.dropBytes(8);
     std::string JointMatrixByteArrayToStr;
     while (!JointMatrixByteArray.empty()) {
       JointMatrixByteArrayToStr += JointMatrixByteArray.consume<char>();
@@ -3542,8 +3534,6 @@ checkDevSupportDeviceRequirements(const device &Dev,
 
     ByteArray JointMatrixMadByteArray =
         DeviceBinaryProperty(*(JointMatrixMadPropIt.value())).asByteArray();
-    // Drop 8 bytes describing the size of the byte array.
-    // JointMatrixMadByteArray.dropBytes(8);
     std::string JointMatrixMadByteArrayToStr;
     while (!JointMatrixMadByteArray.empty()) {
       JointMatrixMadByteArrayToStr += JointMatrixMadByteArray.consume<char>();
@@ -3566,8 +3556,6 @@ checkDevSupportDeviceRequirements(const device &Dev,
     auto it = usingUint64_t ? ReqdWGSizeUint64TPropIt : ReqdWGSizeUint32TPropIt;
 
     ByteArray ReqdWGSize = DeviceBinaryProperty(*(it.value())).asByteArray();
-    // Drop 8 bytes describing the size of the byte array.
-    // ReqdWGSize.dropBytes(8);
     uint64_t ReqdWGSizeAllDimsTotal = 1;
     std::vector<uint64_t> ReqdWGSizeVec;
     int Dims = 0;
@@ -3722,8 +3710,6 @@ bool doesImageTargetMatchDevice(const RTDeviceBinaryImage &Img,
   // Device image has the compile_target property, so it is AOT compiled for
   // some device, check if that architecture is Device's architecture.
   auto CompileTargetByteArray = DeviceBinaryProperty(*PropIt).asByteArray();
-  // Drop 8 bytes describing the size of the byte array.
-  // CompileTargetByteArray.dropBytes(8);
   std::string_view CompileTarget(
       reinterpret_cast<const char *>(&CompileTargetByteArray[0]),
       CompileTargetByteArray.size());

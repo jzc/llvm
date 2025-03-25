@@ -52,7 +52,7 @@ std::ostream &operator<<(std::ostream &Out, const DeviceBinaryProperty &P) {
     break;
   }
   case SYCL_PROPERTY_TYPE_STRING:
-    Out << P.asCString();
+    Out << P.asStringView();
     break;
   default:
     assert(false && "Unsupported property");
@@ -77,12 +77,13 @@ ByteArray DeviceBinaryProperty::asByteArray() const {
   return {Data, Prop->ValSize};
 }
 
-const char *DeviceBinaryProperty::asCString() const {
+std::string_view DeviceBinaryProperty::asStringView() const {
   assert((Prop->Type == SYCL_PROPERTY_TYPE_STRING ||
           Prop->Type == SYCL_PROPERTY_TYPE_BYTE_ARRAY) &&
          "property type mismatch");
   assert(Prop->ValSize > 0 && "property size mismatch");
-  return ur::cast<const char *>(Prop->ValAddr);
+  const auto *Data = static_cast<char *>(Prop->ValAddr);
+  return {Data, Prop->ValSize};
 }
 
 void RTDeviceBinaryImage::PropertyRange::init(sycl_device_binary Bin,

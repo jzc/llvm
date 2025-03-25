@@ -1406,7 +1406,7 @@ Expected<std::vector<SplitModule>> parseSplitModulesFromFile(StringRef File) {
       return createFileError(PropertyFilePath, MBOrErr.getError());
 
     auto &MB = **MBOrErr;
-    auto PropSetOrErr = llvm::util::PropertySetRegistry::readJSON(&MB);
+    auto PropSetOrErr = llvm::util::PropertySetRegistry::read(&MB);
     if (!PropSetOrErr)
       return PropSetOrErr.takeError();
 

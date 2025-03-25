@@ -340,7 +340,7 @@ std::string saveModuleProperties(module_split::ModuleDesc &MD,
   std::string SCFile = makeResultFileName(".prop", I, NewSuff);
   raw_fd_ostream SCOut(SCFile, EC);
   checkError(EC, "error opening file '" + SCFile + "'");
-  PropSet.writeJSON(SCOut);
+  PropSet.write(SCOut);
 
   return SCFile;
 }

@@ -89,13 +89,11 @@ PropertySetRegistry::read(const MemoryBuffer *Buf) {
       break;
     }
     case PropertyValue::Type::BYTE_ARRAY: {
-      Expected<std::unique_ptr<byte[]>> DecArr =
+      Expected<SmallVector<byte>> DecArr =
           Base64::decode(Val.data(), Val.size());
       if (!DecArr)
         return DecArr.takeError();
-      char *ThePtr = reinterpret_cast<char *>((*DecArr).get());
-      auto DecodedSize = Base64::getDecodedSize(Val.size());
-      StringRef Res(ThePtr, DecodedSize);
+      StringRef Res(reinterpret_cast<char *>(DecArr->data()), DecArr->size());
       Prop = PropertyValue(Res);
       break;
     }
