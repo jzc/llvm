@@ -169,12 +169,9 @@ public:
   /// Parses from the given \p Buf a property set registry.
   static Expected<std::unique_ptr<PropertySetRegistry>>
   read(const MemoryBuffer *Buf);
-  static Expected<std::unique_ptr<PropertySetRegistry>>
-  readJSON(const MemoryBuffer *Buf);
 
   /// Dumps the property set registry to the given \p Out stream.
   void write(raw_ostream &Out) const;
-  void writeJSON(raw_ostream &Out) const;
 
   MapTy::const_iterator begin() const { return PropSetMap.begin(); }
   MapTy::const_iterator end() const { return PropSetMap.end(); }
