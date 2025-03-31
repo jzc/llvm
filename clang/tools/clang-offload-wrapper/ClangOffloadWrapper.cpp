@@ -926,7 +926,7 @@ private:
         return MBOrErr.takeError();
       MemoryBuffer *MB = *MBOrErr;
       Expected<std::unique_ptr<llvm::util::PropertySetRegistry>> PropRegistryE =
-          llvm::util::PropertySetRegistry::read(MB);
+          llvm::util::PropertySetRegistry::readJSON(MB);
       if (!PropRegistryE)
         return PropRegistryE.takeError();
       std::unique_ptr<llvm::util::PropertySetRegistry> &PropRegistryFromFile =

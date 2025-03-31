@@ -1939,6 +1939,9 @@ void ProgramManager::addImages(sycl_device_binaries DeviceBinary) {
       KernelNameToArgMaskMap &ArgMaskMap =
           m_EliminatedKernelArgMasks[Img.get()];
       for (const auto &Info : KPOIRange)
+        // The device binary property will have 8 bytes representing
+        // the size of the mask in bits, followed by the mask itself. 
+        // createKernelArgMask parses this and returns a vector of bits.
         ArgMaskMap[Info->Name] =
             createKernelArgMask(DeviceBinaryProperty(Info).asByteArray());
     }
